@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="css/tablesorter_blue.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="js/jquery-1.7.min.js"></script>
+    <script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
+    <title>{{ rinfo.condition }}: {{ rinfo.id }}</title>
+</head>
+<body>
+<script type="text/javascript">
+    $(document).ready(function()
+            {
+                $("#sessions_table").tablesorter();
+            }
+    );
+</script>
+
+<h3>Condition: {{ rinfo.condition }}</h3>
+<h3>Subject: {{ rinfo.id }}</h3>
+
+<h4>% Correct: {{ rinfo.perc_correct|round(2) }}</h4>
+<h4>Mean RT in 0% coherence trials: {{ rinfo.difficult_mean_rt|round(2) }}ms</h4>
+
+<table>
+    <tr>
+        <td><img src="{{ rinfo.rt_url }}"/></td>
+        <td><img src="{{ rinfo.rt_dist_url }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.perc_correct_url }}"/></td>
+        <td></td>
+    </tr>
+</table>
+
+<h4>Sessions</h4>
+<table border="1" class="tablesorter" id="sessions_table">
+    <thead>
+    <tr>
+        <th>Session</th>
+        <th>RT: a</th>
+        <th>RT: k</th>
+        <th>RT: tr</th>
+        <th>Acc: alpha</th>
+        <th>Acc: beta</th>
+        <th>% correct</th>
+        <th>Mean RT</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for type,session in rinfo.sessions.iteritems() %}
+    <tr>
+        <td><a href="{{ session.output_file }}">{{ session.type }}</a></td>
+        <td>{{ session.a|round(3) }}</td>
+        <td>{{ session.k|round(3) }}</td>
+        <td>{{ session.tr|round(3) }}</td>
+        <td>{{ session.alpha|round(3) }}</td>
+        <td>{{ session.beta|round(3) }}</td>
+        <td>{{ session.perc_correct|round(2) }}</td>
+        <td>{{ session.difficult_mean_rt|round(2) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

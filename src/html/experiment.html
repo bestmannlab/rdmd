@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="css/tablesorter_blue.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="js/jquery-1.7.min.js"></script>
+    <script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
+    <title>{{ rinfo.name }}</title>
+</head>
+<body>
+<script type="text/javascript">
+    $(document).ready(function()
+            {
+                $("#conditions_table").tablesorter();
+            }
+    );
+</script>
+
+<h3>Experiment: {{ rinfo.name }}</h3>
+
+<table>
+    <tr>
+        <td><img src="{{ rinfo.rt_url }}"/></td>
+        <td><img src="{{ rinfo.rt_dist_url }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.perc_correct_url }}"/></td>
+        <td></td>
+    </tr>
+</table>
+
+<table width=100%>
+    <tr>
+        <td>Condition</td>
+        <td>RT distribution</td>
+        <td>RT by coherence</td>
+        <td>Accuracy by coherence</td>
+    </tr>
+    {% for condition_name, condition in rinfo.conditions.iteritems() %}
+        <tr>
+            <td>{{ condition_name }}</td>
+            <td><img src="{{ condition.rt_dist_url }}"/></td>
+            <td><img src="{{ condition.rt_url }}"/></td>
+            <td><img src="{{ condition.perc_correct_url }}"/></td>
+        </tr>
+    {% endfor %}
+</table>
+
+<h4>Conditions</h4>
+<table border="1" class="tablesorter" id="conditions_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Pre Acc: alpha</th>
+        <th>Pre Acc: beta</th>
+        <th>Stim Acc: alpha</th>
+        <th>Stim Acc: beta</th>
+        <th>Post Acc: alpha</th>
+        <th>Post Acc: beta</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition_name,condition in rinfo.conditions.iteritems() %}
+    <tr>
+        <td><a href="{{ condition.output_file }}">{{ condition_name }}</a></td>
+        <td>{{ condition.alpha_values['pre']|round(3) }}</td>
+        <td>{{ condition.beta_values['pre']|round(3) }}</td>
+        <td>{{ condition.alpha_values['stim']|round(3) }}</td>
+        <td>{{ condition.beta_values['stim']|round(3) }}</td>
+        <td>{{ condition.alpha_values['post']|round(3) }}</td>
+        <td>{{ condition.beta_values['post']|round(3) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

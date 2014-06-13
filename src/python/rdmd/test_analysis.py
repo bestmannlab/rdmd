@@ -27,7 +27,7 @@ if __name__ == "__main__":
     for thisFileName in files:
         thisDat = fromFile(thisFileName)
 
-        condition=thisDat.extraInfo['condition']
+        condition=thisDat.extraInfo['condition'].lower()
         if not condition in coherence_resp:
             coherence_resp[condition]={}
             coherence_rt[condition]={}

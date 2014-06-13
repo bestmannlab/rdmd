@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="css/tablesorter_blue.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="js/jquery-1.7.min.js"></script>
+    <script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
+    <title>{{ rinfo.name }}</title>
+</head>
+<body>
+<script type="text/javascript">
+    $(document).ready(function()
+            {
+                $("#subjects_table").tablesorter();
+            }
+    );
+</script>
+
+<h3>Condition: {{ rinfo.name }}</h3>
+
+<h4>% Correct: {{ rinfo.perc_correct|round(2) }}</h4>
+<h4>Mean RT in 0% coherence trials: {{ rinfo.difficult_mean_rt|round(2) }}ms</h4>
+
+<table>
+    <tr>
+        <td><img src="{{ rinfo.rt_url }}"/></td>
+        <td><img src="{{ rinfo.rt_dist_url }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.perc_correct_url }}"/></td>
+        <td></td>
+    </tr>
+</table>
+
+<h4>Subjects</h4>
+<table border="1" class="tablesorter" id="sessions_table">
+    <thead>
+    <tr>
+        <th>Subject</th>
+        <th>Pre RT: a</th>
+        <th>Pre RT: k</th>
+        <th>Pre RT: tr</th>
+        <th>Stim RT: a</th>
+        <th>Stim RT: k</th>
+        <th>Stim RT: tr</th>
+        <th>Post RT: a</th>
+        <th>Post RT: k</th>
+        <th>Post RT: tr</th>
+        <th>Pre Acc: alpha</th>
+        <th>Pre Acc: beta</th>
+        <th>Stim Acc: alpha</th>
+        <th>Stim Acc: beta</th>
+        <th>Post Acc: alpha</th>
+        <th>Post Acc: beta</th>
+        <th>Pre % correct</th>
+        <th>Pre Mean RT</th>
+        <th>Stim % correct</th>
+        <th>Stim Mean RT</th>
+        <th>Post % correct</th>
+        <th>Post Mean RT</th>
+        <th>% correct</th>
+        <th>Mean RT</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for subj_id,subject in rinfo.subjects.iteritems() %}
+    <tr>
+        <td><a href="{{ subj_id }}/{{ subject.output_file }}">{{ subj_id }}</a></td>
+        <td>{{ subject.sessions['pre'].a|round(3) }}</td>
+        <td>{{ subject.sessions['pre'].k|round(3) }}</td>
+        <td>{{ subject.sessions['pre'].tr|round(3) }}</td>
+        <td>{{ subject.sessions['stim'].a|round(3) }}</td>
+        <td>{{ subject.sessions['stim'].k|round(3) }}</td>
+        <td>{{ subject.sessions['stim'].tr|round(3) }}</td>
+        <td>{{ subject.sessions['post'].a|round(3) }}</td>
+        <td>{{ subject.sessions['post'].k|round(3) }}</td>
+        <td>{{ subject.sessions['post'].tr|round(3) }}</td>
+        <td>{{ subject.sessions['pre'].alpha|round(3) }}</td>
+        <td>{{ subject.sessions['pre'].beta|round(3) }}</td>
+        <td>{{ subject.sessions['stim'].alpha|round(3) }}</td>
+        <td>{{ subject.sessions['stim'].beta|round(3) }}</td>
+        <td>{{ subject.sessions['post'].alpha|round(3) }}</td>
+        <td>{{ subject.sessions['post'].beta|round(3) }}</td>
+        <td>{{ subject.sessions['pre'].perc_correct|round(2) }}</td>
+        <td>{{ subject.sessions['pre'].difficult_mean_rt|round(2) }}</td>
+        <td>{{ subject.sessions['stim'].perc_correct|round(2) }}</td>
+        <td>{{ subject.sessions['stim'].difficult_mean_rt|round(2) }}</td>
+        <td>{{ subject.sessions['post'].perc_correct|round(2) }}</td>
+        <td>{{ subject.sessions['post'].difficult_mean_rt|round(2) }}</td>
+        <td>{{ subject.perc_correct|round(2) }}</td>
+        <td>{{ subject.difficult_mean_rt|round(2) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>
