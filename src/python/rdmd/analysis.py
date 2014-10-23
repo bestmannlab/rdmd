@@ -41,34 +41,39 @@ class Condition:
             subject.create_report(subj_report_dir)
             for session_id, session in subject.sessions.iteritems():
                 for trial in session.trials:
-                    rts.append(trial.rt)
-                    if trial.coherence>0:
-                        coherent_responses.append(trial.response)
-                    else:
-                        difficult_rts.append(trial.rt)
+                    if not trial.idx in session.excluded_trials:
+                        rts.append(trial.rt)
+                        if trial.coherence>0:
+                            coherent_responses.append(trial.response)
+                        else:
+                            difficult_rts.append(trial.rt)
         self.perc_correct=np.mean(coherent_responses)*100.0
         self.difficult_mean_rt=np.mean(difficult_rts)
 
         session_coherence_responses={}
         session_coherence_rts={}
-        all_coherence_levels=[]
+        self.all_coherence_levels=[]
         for subj_id, subject in self.subjects.iteritems():
             for session_id, session in subject.sessions.iteritems():
-                if not session in session_coherence_responses:
+                if not session_id in session_coherence_responses:
                     session_coherence_responses[session_id]={}
-                if not session in session_coherence_rts:
+                if not session_id in session_coherence_rts:
                     session_coherence_rts[session_id]={}
-                for trial in session.trials:
-                    if not trial.coherence in all_coherence_levels:
-                        all_coherence_levels.append(trial.coherence)
-                    if not trial.coherence in session_coherence_responses[session_id]:
-                        session_coherence_responses[session_id][trial.coherence]=[]
-                    session_coherence_responses[session_id][trial.coherence].append(trial.response)
-                    if not trial.coherence in session_coherence_rts[session_id]:
-                        session_coherence_rts[session_id][trial.coherence]=[]
-                    session_coherence_rts[session_id][trial.coherence].append(trial.rt)
 
-        all_coherence_levels=sorted(all_coherence_levels)
+                for trial in session.trials:
+                    if not trial.idx in session.excluded_trials:
+                        if not trial.coherence in self.all_coherence_levels:
+                            self.all_coherence_levels.append(trial.coherence)
+
+                        if not trial.coherence in session_coherence_responses[session_id]:
+                            session_coherence_responses[session_id][trial.coherence]=[]
+                        session_coherence_responses[session_id][trial.coherence].append(trial.response)
+
+                        if not trial.coherence in session_coherence_rts[session_id]:
+                            session_coherence_rts[session_id][trial.coherence]=[]
+                        session_coherence_rts[session_id][trial.coherence].append(trial.rt)
+
+        self.all_coherence_levels=sorted(self.all_coherence_levels)
 
         self.session_mean_rt={}
         self.session_std_rt={}
@@ -78,7 +83,7 @@ class Condition:
                 self.session_mean_rt[session]=[]
                 self.session_std_rt[session]=[]
                 self.session_coherence_perc_correct[session]=[]
-            for coherence in all_coherence_levels:
+            for coherence in self.all_coherence_levels:
                 self.session_mean_rt[session].append(np.mean(session_coherence_rts[session][coherence]))
                 self.session_std_rt[session].append(np.std(session_coherence_rts[session][coherence])/float(len(session_coherence_rts[session][coherence])))
                 if coherence>0:
@@ -89,18 +94,18 @@ class Condition:
         self.rt_url='%s.png' % furl
         fig=plt.figure()
         for session_type in self.session_mean_rt.keys():
-            plt.errorbar(all_coherence_levels,self.session_mean_rt[session_type],yerr=self.session_std_rt[session_type],
+            plt.errorbar(self.all_coherence_levels,self.session_mean_rt[session_type],yerr=self.session_std_rt[session_type],
                 fmt='o%s' % self.colors[session_type], label=session_type)
-            self.rt_fits[session_type] = FitRT(all_coherence_levels, self.session_mean_rt[session_type], guess=[1,1,1])
+            self.rt_fits[session_type] = FitRT(self.all_coherence_levels, self.session_mean_rt[session_type], guess=[1,1,1])
             self.a_values[session_type]=self.rt_fits[session_type].params[0]
             self.k_values[session_type]=self.rt_fits[session_type].params[1]
             self.tr_values[session_type]=self.rt_fits[session_type].params[2]
-            smoothInt = pylab.arange(0.01, max(all_coherence_levels), 0.001)
+            smoothInt = pylab.arange(0.01, max(self.all_coherence_levels), 0.001)
             smoothResp = self.rt_fits[session_type].eval(smoothInt)
             plt.plot(smoothInt, smoothResp, '-%s' % self.colors[session_type])
         plt.legend(loc='best')
         plt.xscale('log')
-        plt.ylim([500, 1000])
+        #plt.ylim([500, 1000])
         plt.xlabel('Coherence')
         plt.ylabel('Decision time (s)')
         save_to_png(fig, '%s.png' % fname)
@@ -111,14 +116,14 @@ class Condition:
         self.perc_correct_url='%s.png' % furl
         fig=plt.figure()
         for session_type in self.session_coherence_perc_correct.keys():
-            self.acc_fits[session_type] = data.FitWeibull(all_coherence_levels[1:],
+            self.acc_fits[session_type] = data.FitWeibull(self.all_coherence_levels[1:],
                 self.session_coherence_perc_correct[session_type], guess=[0.2, 0.5])
             self.alpha_values[session_type]=self.acc_fits[session_type].params[0]
             self.beta_values[session_type]=self.acc_fits[session_type].params[1]
-            smoothInt = pylab.arange(0.0, max(all_coherence_levels[1:]), 0.001)
+            smoothInt = pylab.arange(0.0, max(self.all_coherence_levels[1:]), 0.001)
             smoothResp = self.acc_fits[session_type].eval(smoothInt)
             plt.plot(smoothInt, smoothResp, '-%s' % self.colors[session_type])
-            plt.plot(all_coherence_levels[1:], self.session_coherence_perc_correct[session_type],
+            plt.plot(self.all_coherence_levels[1:], self.session_coherence_perc_correct[session_type],
                 'o%s' % self.colors[session_type], label=session_type)
         plt.ylim([0.4,1])
         plt.legend(loc='best')
@@ -167,11 +172,12 @@ class Subject:
         for session_id, session in self.sessions.iteritems():
             session.create_report(report_dir)
             for trial in session.trials:
-                rts.append(trial.rt)
-                if trial.coherence>0:
-                    coherent_responses.append(trial.response)
-                else:
-                    difficult_rts.append(trial.rt)
+                if not trial.idx in session.excluded_trials:
+                    rts.append(trial.rt)
+                    if trial.coherence>0:
+                        coherent_responses.append(trial.response)
+                    else:
+                        difficult_rts.append(trial.rt)
         self.perc_correct=np.mean(coherent_responses)*100.0
         self.difficult_mean_rt=np.mean(difficult_rts)
 
@@ -189,7 +195,7 @@ class Subject:
         plt.xlabel('Contrast')
         plt.ylabel('Decision time (s)')
         plt.xscale('log')
-        plt.ylim([500, 1000])
+        #plt.ylim([500, 1000])
         save_to_png(fig, '%s.png' % fname)
         plt.close(fig)
 
@@ -240,6 +246,7 @@ class Session:
         self.file_name=file_name
 
         self.trials=[]
+        self.excluded_trials=[]
 
         # % Correct over all trials (except 0% coherence trials)
         self.perc_correct=0.0
@@ -262,6 +269,17 @@ class Session:
                 trialIdx=idx-1
 
                 self.trials.append(Trial(trialIdx,coherence,resp,rt))
+        coherence_rts={}
+        for trial in self.trials:
+            if not trial.coherence in coherence_rts:
+                coherence_rts[trial.coherence]=[]
+            coherence_rts[trial.coherence].append(trial.rt)
+        for trial in self.trials:
+            mean_rt=np.mean(coherence_rts[trial.coherence])
+            std_rt=np.std(coherence_rts[trial.coherence])
+            if trial.rt<mean_rt-std_rt or trial.rt>mean_rt+std_rt:
+                self.excluded_trials.append(trial.idx)
+
 
     def create_report(self, reports_dir):
         make_report_dirs(reports_dir)
@@ -270,25 +288,30 @@ class Session:
         coherent_responses=[]
         difficult_rts=[]
         for idx,trial in enumerate(self.trials):
-            if trial.coherence>0:
-                coherent_responses.append(trial.response)
-            else:
-                difficult_rts.append(trial.rt)
+            if not idx in self.excluded_trials:
+                if trial.coherence>0:
+                    coherent_responses.append(trial.response)
+                else:
+                    difficult_rts.append(trial.rt)
         self.perc_correct=np.mean(coherent_responses)*100.0
         self.difficult_mean_rt=np.mean(difficult_rts)
 
         # All RTs
-        rts=[x.rt for x in self.trials]
+        rts=[]
+        for trial in self.trials:
+            if not trial.idx in self.excluded_trials:
+                rts.append(trial.rt)
 
         coherence_responses={}
         coherence_rts={}
         for trial in self.trials:
-            if not trial.coherence in coherence_responses:
-                coherence_responses[trial.coherence]=[]
-            coherence_responses[trial.coherence].append(trial.response)
-            if not trial.coherence in coherence_rts:
-                coherence_rts[trial.coherence]=[]
-            coherence_rts[trial.coherence].append(trial.rt)
+            if not trial.idx in self.excluded_trials:
+                if not trial.coherence in coherence_responses:
+                    coherence_responses[trial.coherence]=[]
+                coherence_responses[trial.coherence].append(trial.response)
+                if not trial.coherence in coherence_rts:
+                    coherence_rts[trial.coherence]=[]
+                coherence_rts[trial.coherence].append(trial.rt)
 
         self.all_coherence_levels=sorted(coherence_responses.keys())
 
@@ -314,7 +337,7 @@ class Session:
         smoothResp = self.rt_fit.eval(smoothInt)
         plt.plot(smoothInt, smoothResp, '-k')
         plt.xscale('log')
-        plt.ylim([500, 1000])
+        #plt.ylim([500, 1000])
         plt.xlabel('Contrast')
         plt.ylabel('Decision time (s)')
         save_to_png(fig, '%s.png' % fname)
@@ -375,7 +398,7 @@ class Trial:
 #    'ES': Subject('ES','sham'),
 #    'JM': Subject('JM','anodal'),
 #    'JH': Subject('JH','anodal'),
-#    'DP': Subject('DP','anodal'),
+#    #'DP': Subject('DP','anodal'),
 #    'HH': Subject('SH','anodal'),
 #    'AK': Subject('AK','anodal'),
 #    #'CK': Subject('CK','anodal'),
@@ -397,7 +420,7 @@ subjects={
     'ES': Subject('ES','sham'),
     'JM': Subject('JM','anodal'),
     'JH': Subject('JH','anodal'),
-    'DP': Subject('DP','anodal'),
+    #'DP': Subject('DP','anodal'),
     'HH': Subject('SH','anodal'),
     'AK': Subject('AK','anodal'),
     #'CK': Subject('CK','anodal'),
@@ -406,9 +429,7 @@ subjects={
     'SP': Subject('SP','sham'),
     'PT': Subject('PT','sham'),
 }
-#subjects={
-#    'JB': Subject('JB','sham')
-#}
+
 
 sessions=['pre','stim','post']
 
@@ -457,14 +478,14 @@ def run_analysis(data_dir, reports_dir):
     for condition_name, condition in rinfo.conditions.iteritems():
         for session_type in condition.session_mean_rt.keys():
             plt.errorbar(condition.all_coherence_levels,condition.session_mean_rt[session_type],
-                yerr=condition.session_std_rt[session_type], fmt='o%s' % condition.colors[session_type],
-                label='%s - %s' % (condition_name,session_type))
+                yerr=condition.session_std_rt[session_type], fmt='o%s' % condition.colors[session_type])
             smoothInt = pylab.arange(0.01, max(condition.all_coherence_levels), 0.001)
             smoothResp = condition.rt_fits[session_type].eval(smoothInt)
-            plt.plot(smoothInt, smoothResp, '%s%s' % (line_styles[condition_name],condition.colors[session_type]))
+            plt.plot(smoothInt, smoothResp, '%s%s' % (line_styles[condition_name],condition.colors[session_type]),
+                label='%s - %s' % (condition_name,session_type))
     plt.legend(loc='best')
     plt.xscale('log')
-    plt.ylim([500, 1000])
+    #plt.ylim([500, 1000])
     plt.xlabel('Coherence')
     plt.ylabel('Decision time (s)')
     save_to_png(fig, '%s.png' % fname)
@@ -477,10 +498,11 @@ def run_analysis(data_dir, reports_dir):
     for condition_name, condition in rinfo.conditions.iteritems():
         for session_type in condition.session_coherence_perc_correct.keys():
             plt.plot(condition.all_coherence_levels[1:], condition.session_coherence_perc_correct[session_type],
-                'o%s' % condition.colors[session_type], label=session_type)
+                'o%s' % condition.colors[session_type])
             smoothInt = pylab.arange(0.0, max(condition.all_coherence_levels[1:]), 0.001)
             smoothResp = condition.acc_fits[session_type].eval(smoothInt)
-            plt.plot(smoothInt, smoothResp, '%s%s' % (line_styles[condition_name],condition.colors[session_type]))
+            plt.plot(smoothInt, smoothResp, '%s%s' % (line_styles[condition_name],condition.colors[session_type]),
+                label='%s - %s' % (condition_name,session_type))
     plt.ylim([0.4,1])
     plt.legend(loc='best')
     save_to_png(fig, '%s.png' % fname)

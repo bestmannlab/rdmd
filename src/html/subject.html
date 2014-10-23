@@ -5,63 +5,104 @@
     <link rel="stylesheet" href="css/tablesorter_blue.css" type="text/css" media="screen" />
     <script type="text/javascript" src="js/jquery-1.7.min.js"></script>
     <script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
-    <title>{{ rinfo.condition }}: {{ rinfo.id }}</title>
+    <title>{{ rinfo.id }}</title>
 </head>
 <body>
 <script type="text/javascript">
     $(document).ready(function()
             {
                 $("#sessions_table").tablesorter();
+                $("#conditions_table").tablesorter();
             }
     );
 </script>
 
-<h3>Condition: {{ rinfo.condition }}</h3>
 <h3>Subject: {{ rinfo.id }}</h3>
 
-<h4>% Correct: {{ rinfo.perc_correct|round(2) }}</h4>
-<h4>Mean RT in 0% coherence trials: {{ rinfo.difficult_mean_rt|round(2) }}ms</h4>
+<h4>% Correct: {{ rinfo.all_perc_correct|round(2) }}</h4>
+<h4>Mean RT in 0% coherence trials: {{ rinfo.all_difficult_mean_rt|round(2) }}ms</h4>
 
+<h4>Sessions</h4>
 <table>
     <tr>
-        <td><img src="{{ rinfo.rt_url }}"/></td>
-        <td><img src="{{ rinfo.rt_dist_url }}"/></td>
+        <td><img src="{{ rinfo.urls['rt_post'] }}"/></td>
+        <td><img src="{{ rinfo.urls['rt_dist_post'] }}"/></td>
     </tr>
     <tr>
-        <td><img src="{{ rinfo.perc_correct_url }}"/></td>
+        <td><img src="{{ rinfo.urls['perc_correct_post'] }}"/></td>
         <td></td>
     </tr>
 </table>
-
-<h4>Sessions</h4>
 <table border="1" class="tablesorter" id="sessions_table">
     <thead>
     <tr>
         <th>Session</th>
-        <th>RT: a</th>
-        <th>RT: k</th>
-        <th>RT: tr</th>
-        <th>Acc: alpha</th>
-        <th>Acc: beta</th>
         <th>% correct</th>
         <th>Mean RT</th>
     </tr>
     </thead>
     <tbody>
-    {% for type,session in rinfo.sessions.iteritems() %}
+    {% for session in rinfo.sessions %}
     <tr>
-        <td><a href="{{ session.output_file }}">{{ session.type }}</a></td>
-        <td>{{ session.a|round(3) }}</td>
-        <td>{{ session.k|round(3) }}</td>
-        <td>{{ session.tr|round(3) }}</td>
-        <td>{{ session.alpha|round(3) }}</td>
-        <td>{{ session.beta|round(3) }}</td>
-        <td>{{ session.perc_correct|round(2) }}</td>
-        <td>{{ session.difficult_mean_rt|round(2) }}</td>
+        <td><a href="{{ loop.index }}/session_{{ loop.index }}.html">{{ loop.index }}</a></td>
+        <td>{{ session.all_perc_correct|round(2) }}</td>
+        <td>{{ session.all_difficult_mean_rt|round(2) }}</td>
     </tr>
     {% endfor %}
     </tbody>
 </table>
+
+<h4>Conditions</h4>
+<table>
+    <tr>
+        <td><img src="{{ rinfo.urls['mean_rt_post'] }}"/></td>
+        <td><img src="{{ rinfo.urls['mean_rt_dist_post'] }}"/></td>
+        <td><img src="{{ rinfo.urls['diff_mean_rt_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['mean_perc_correct_post'] }}"/></td>
+        <td></td>
+        <td></td>
+    </tr>
+    {% for coherence in rinfo.coherence_mean_rt_urls %}
+        <tr>
+            <td><img src="{{ rinfo.urls['coherence_mean_rt_post'][coherence] }}"/></td>
+            <td></td>
+            <td></td>
+        </tr>
+    {% endfor %}
+</table>
+<table border="1" class="tablesorter" id="conditions_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Threshold</th>
+        <th>% Correct</th>
+        <th>Mean RT in 0% coherence trials</th>
+        <th>RT - a</th>
+        <th>RT - k</th>
+        <th>RT - tr</th>
+        <th>Acc - alpha</th>
+        <th>Acc - beta</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.conditions %}
+    <tr>
+        <td>{{ condition }}</td>
+        <td>{{ rinfo.thresh[condition]|round(3) }}</td>
+        <td>{{ rinfo.perc_correct[condition]|round(2) }}</td>
+        <td>{{ rinfo.difficult_mean_rt[condition]|round(2) }}</td>
+        <td>{{ rinfo.a[condition]|round(2) }}</td>
+        <td>{{ rinfo.k[condition]|round(2) }}</td>
+        <td>{{ rinfo.tr[condition]|round(2) }}</td>
+        <td>{{ rinfo.alpha[condition]|round(2) }}</td>
+        <td>{{ rinfo.beta[condition]|round(2) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
 
 </body>
 </html>

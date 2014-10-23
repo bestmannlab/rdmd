@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" />
+    <link rel="stylesheet" href="css/tablesorter_blue.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="js/jquery-1.7.min.js"></script>
+    <script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
+    <title>{{ rinfo.condition }}: {{ rinfo.subj_id }} - {{ rinfo.session_idx }} - {{ rinfo.run_num }}</title>
+</head>
+<body>
+<script type="text/javascript">
+    $(document).ready(function()
+            {
+                $("#trials_table").tablesorter();
+            }
+    );
+</script>
+
+<h3>Subject: {{ rinfo.subj_id }}</h3>
+<h3>Session: {{ rinfo.session_idx }}</h3>
+<h3>Run: {{ rinfo.run_num }}</h3>
+<h3>Condition: {{ rinfo.condition }}</h3>
+
+<h4>% Correct: {{ rinfo.perc_correct|round(2) }}</h4>
+<h4>Mean RT in 0% coherence trials: {{ rinfo.difficult_mean_rt|round(2) }}ms</h4>
+<h4>Threshold: {{ rinfo.thresh|round(3) }}</h4>
+
+<table border="1">
+    <tr>
+        <td colspan="2">RT function</td>
+    </tr>
+    <tr>
+        <td>a</td>
+        <td>{{ rinfo.a|round(2) }}</td>
+    </tr>
+    <tr>
+        <td>k</td>
+        <td>{{ rinfo.k|round(2) }}</td>
+    </tr>
+    <tr>
+        <td>tr</td>
+        <td>{{ rinfo.tr|round(2) }}</td>
+    </tr>
+    <tr>
+        <td colspan="2">Accuracy function</td>
+    </tr>
+    <tr>
+        <td>alpha</td>
+        <td>{{ rinfo.alpha|round(2) }}</td>
+    </tr>
+    <tr>
+        <td>beta</td>
+        <td>{{ rinfo.beta|round(2) }}</td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <td align=center>Prefilter</td>
+        <td align=center>Postfilter</td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['rt_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['rt_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['rt_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['rt_dist_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['perc_correct_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['perc_correct_post'] }}"/></td>
+    </tr>
+    {% for coherence in rinfo.all_coherence_levels %}
+        <tr>
+            <td><img src="{{ rinfo.urls['coherence_rt_dist_pre'][coherence] }}"/></td>
+            <td><img src="{{ rinfo.urls['coherence_rt_dist_post'][coherence] }}"/></td>
+        </tr>
+    {% endfor %}
+</table>
+
+<h4>Trials</h4>
+<table border="1" class="tablesorter" id="trials_table">
+    <thead>
+    <tr>
+        <th>Trial</th>
+        <th>Coherence</th>
+        <th>Response</th>
+        <th>RT (ms)</th>
+        <th>Excluded</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for trial in rinfo.trials %}
+    <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ trial.coherence }}</td>
+        <td>{{ trial.response }}</td>
+        <td>{{ trial.rt|round(2) }}</td>
+        <td>{{ trial.excluded }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

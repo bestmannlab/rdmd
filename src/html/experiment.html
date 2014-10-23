@@ -11,64 +11,322 @@
 <script type="text/javascript">
     $(document).ready(function()
             {
-                $("#conditions_table").tablesorter();
+                $("#subjects_table").tablesorter();
+                $("#pre_post_filter_table").tablesorter();
+                $("#alpha_normality_table").tablesorter();
+                $("#beta_normality_table").tablesorter();
+                $("#thresh_normality_table").tablesorter();
+                $("#a_normality_table").tablesorter();
+                $("#k_normality_table").tablesorter();
+                $("#tr_normality_table").tablesorter();
+                $("#perc_correct_normality_table").tablesorter();
+                $("#rt_normality_table").tablesorter();
             }
     );
 </script>
 
 <h3>Experiment: {{ rinfo.name }}</h3>
 
-<table>
-    <tr>
-        <td><img src="{{ rinfo.rt_url }}"/></td>
-        <td><img src="{{ rinfo.rt_dist_url }}"/></td>
-    </tr>
-    <tr>
-        <td><img src="{{ rinfo.perc_correct_url }}"/></td>
-        <td></td>
-    </tr>
-</table>
-
-<table width=100%>
-    <tr>
-        <td>Condition</td>
-        <td>RT distribution</td>
-        <td>RT by coherence</td>
-        <td>Accuracy by coherence</td>
-    </tr>
-    {% for condition_name, condition in rinfo.conditions.iteritems() %}
-        <tr>
-            <td>{{ condition_name }}</td>
-            <td><img src="{{ condition.rt_dist_url }}"/></td>
-            <td><img src="{{ condition.rt_url }}"/></td>
-            <td><img src="{{ condition.perc_correct_url }}"/></td>
-        </tr>
-    {% endfor %}
-</table>
-
-<h4>Conditions</h4>
-<table border="1" class="tablesorter" id="conditions_table">
+<table border="1" class="tablesorter" id="pre_post_filter_table">
     <thead>
     <tr>
-        <th>Condition</th>
-        <th>Pre Acc: alpha</th>
-        <th>Pre Acc: beta</th>
-        <th>Stim Acc: alpha</th>
-        <th>Stim Acc: beta</th>
-        <th>Post Acc: alpha</th>
-        <th>Post Acc: beta</th>
+        <th>Prefilter</th>
+        <th>Postfilter</th>
     </tr>
     </thead>
     <tbody>
-    {% for condition_name,condition in rinfo.conditions.iteritems() %}
     <tr>
-        <td><a href="{{ condition.output_file }}">{{ condition_name }}</a></td>
-        <td>{{ condition.alpha_values['pre']|round(3) }}</td>
-        <td>{{ condition.beta_values['pre']|round(3) }}</td>
-        <td>{{ condition.alpha_values['stim']|round(3) }}</td>
-        <td>{{ condition.beta_values['stim']|round(3) }}</td>
-        <td>{{ condition.alpha_values['post']|round(3) }}</td>
-        <td>{{ condition.beta_values['post']|round(3) }}</td>
+        <td><img src="{{ rinfo.urls['mean_rt_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['mean_rt_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['mean_rt_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['mean_rt_dist_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['diff_mean_rt_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['diff_mean_rt_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['mean_perc_correct_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['mean_perc_correct_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['a_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['a_dist_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['k_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['k_dist_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['tr_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['tr_dist_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['alpha_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['alpha_dist_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['beta_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['beta_dist_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['thresh_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['thresh_dist_post'] }}"/></td>
+    </tr>
+    {% for coherence in rinfo.all_coherence_levels['anode'] %}
+    <tr>
+        <td><img src="{{ rinfo.urls['coherence_mean_rt_pre'][coherence] }}"/></td>
+        <td><img src="{{ rinfo.urls['coherence_mean_rt_post'][coherence] }}"/></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>Alpha normality test</h4>
+<table border="1" class="tablesorter" id="alpha_normality_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Mean A</th>
+        <th>W</th>
+        <th>p</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.alpha_means %}
+    <tr>
+        <td>{{ condition }}</td>
+        <td>{{ rinfo.alpha_means[condition]|round(3) }}</td>
+        <td>{{ rinfo.alpha_stats[condition][0]|round(3) }}</td>
+        <td>{{ rinfo.alpha_stats[condition][1]|round(4) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>Alpha comparison</h4>
+Anode: t={{ rinfo.anode_alpha_stats[0]|round(3) }}, p={{ rinfo.anode_alpha_stats[1]|round(4) }}
+<br>
+Cathode: t={{ rinfo.cathode_alpha_stats[0]|round(3) }}, p={{ rinfo.cathode_alpha_stats[1]|round(4) }}
+
+<h4>Beta normality test</h4>
+<table border="1" class="tablesorter" id="beta_normality_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Mean A</th>
+        <th>W</th>
+        <th>p</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.beta_means %}
+    <tr>
+        <td>{{ condition }}</td>
+        <td>{{ rinfo.beta_means[condition]|round(3) }}</td>
+        <td>{{ rinfo.beta_stats[condition][0]|round(3) }}</td>
+        <td>{{ rinfo.beta_stats[condition][1]|round(4) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>Beta comparison</h4>
+Anode: t={{ rinfo.anode_beta_stats[0]|round(3) }}, p={{ rinfo.anode_beta_stats[1]|round(4) }}
+<br>
+Cathode: t={{ rinfo.cathode_beta_stats[0]|round(3) }}, p={{ rinfo.cathode_beta_stats[1]|round(4) }}
+
+<h4>Threshold normality test</h4>
+<table border="1" class="tablesorter" id="thresh_normality_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Mean threshold</th>
+        <th>W</th>
+        <th>p</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.thresh_means %}
+        <tr>
+            <td>{{ condition }}</td>
+            <td>{{ rinfo.thresh_means[condition]|round(3) }}</td>
+            <td>{{ rinfo.thresh_stats[condition][0]|round(3) }}</td>
+            <td>{{ rinfo.thresh_stats[condition][1]|round(4) }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>Threshold comparison</h4>
+Anode: t={{ rinfo.anode_thresh_stats[0]|round(3) }}, p={{ rinfo.anode_thresh_stats[1]|round(4) }}
+<br>
+Cathode: t={{ rinfo.cathode_thresh_stats[0]|round(3) }}, p={{ rinfo.cathode_thresh_stats[1]|round(4) }}
+
+<h4>% Correct normality test</h4>
+<table border="1" class="tablesorter" id="perc_correct_normality_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Mean % Correct</th>
+        <th>W</th>
+        <th>p</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.perc_correct_means %}
+    <tr>
+        <td>{{ condition }}</td>
+        <td>{{ rinfo.perc_correct_means[condition]|round(3) }}</td>
+        <td>{{ rinfo.perc_correct_stats[condition][0]|round(3) }}</td>
+        <td>{{ rinfo.perc_correct_stats[condition][1]|round(4) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>% Correct comparison</h4>
+Anode: t={{ rinfo.anode_perc_correct_stats[0]|round(3) }}, p={{ rinfo.anode_perc_correct_stats[1]|round(4) }}
+<br>
+Cathode: t={{ rinfo.cathode_perc_correct_stats[0]|round(3) }}, p={{ rinfo.cathode_perc_correct_stats[1]|round(4) }}
+
+
+<h4>A normality test</h4>
+<table border="1" class="tablesorter" id="a_normality_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Mean A</th>
+        <th>W</th>
+        <th>p</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.a_means %}
+    <tr>
+        <td>{{ condition }}</td>
+        <td>{{ rinfo.a_means[condition]|round(3) }}</td>
+        <td>{{ rinfo.a_stats[condition][0]|round(3) }}</td>
+        <td>{{ rinfo.a_stats[condition][1]|round(4) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>A comparison</h4>
+Anode: t={{ rinfo.anode_a_stats[0]|round(3) }}, p={{ rinfo.anode_a_stats[1]|round(4) }}
+<br>
+Cathode: t={{ rinfo.cathode_a_stats[0]|round(3) }}, p={{ rinfo.cathode_a_stats[1]|round(4) }}
+
+<h4>K normality test</h4>
+<table border="1" class="tablesorter" id="k_normality_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Mean K</th>
+        <th>W</th>
+        <th>p</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.k_means %}
+    <tr>
+        <td>{{ condition }}</td>
+        <td>{{ rinfo.k_means[condition]|round(3) }}</td>
+        <td>{{ rinfo.k_stats[condition][0]|round(3) }}</td>
+        <td>{{ rinfo.k_stats[condition][1]|round(4) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>K comparison</h4>
+Anode: t={{ rinfo.anode_k_stats[0]|round(3) }}, p={{ rinfo.anode_k_stats[1]|round(4) }}
+<br>
+Cathode: t={{ rinfo.cathode_k_stats[0]|round(3) }}, p={{ rinfo.cathode_k_stats[1]|round(4) }}
+
+<h4>TR normality test</h4>
+<table border="1" class="tablesorter" id="tr_normality_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Mean TR</th>
+        <th>W</th>
+        <th>p</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.tr_means %}
+    <tr>
+        <td>{{ condition }}</td>
+        <td>{{ rinfo.tr_means[condition]|round(3) }}</td>
+        <td>{{ rinfo.tr_stats[condition][0]|round(3) }}</td>
+        <td>{{ rinfo.tr_stats[condition][1]|round(4) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>TR comparison</h4>
+Anode: t={{ rinfo.anode_tr_stats[0]|round(3) }}, p={{ rinfo.anode_tr_stats[1]|round(4) }}
+<br>
+Cathode: t={{ rinfo.cathode_tr_stats[0]|round(3) }}, p={{ rinfo.cathode_tr_stats[1]|round(4) }}
+
+
+<h4>RT normality test</h4>
+<table border="1" class="tablesorter" id="rt_normality_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Mean RT</th>
+        <th>W</th>
+        <th>p</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.rt_means %}
+    <tr>
+        <td>{{ condition }}</td>
+        <td>{{ rinfo.rt_means[condition]|round(3) }}</td>
+        <td>{{ rinfo.rt_stats[condition][0]|round(3) }}</td>
+        <td>{{ rinfo.rt_stats[condition][1]|round(4) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>RT comparison</h4>
+Anode: U={{ rinfo.anode_rt_stats[0]|round(3) }}, p={{ rinfo.anode_rt_stats[1]|round(4) }}
+<br>
+Cathode: U={{ rinfo.cathode_rt_stats[0]|round(3) }}, p={{ rinfo.cathode_rt_stats[1]|round(4) }}
+
+<h4>Subjects</h4>
+<table border="1" class="tablesorter" id="subjects_table">
+    <thead>
+    <tr>
+        <th>Subject</th>
+        <th>Excluded</th>
+        <th>% Correct</th>
+        <th>Mean RT in 0% coherence trials</th>
+        <th>RT Dist</th>
+        <th>RT</th>
+        <th>Diff RT</th>
+        <th>% Correct</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for subject in rinfo.subjects %}
+    <tr>
+        <td><a href="{{ subject.id }}/subject_{{ subject.id }}.html">{{ subject.id }}</a></td>
+        <td>{{ subject.excluded }}</td>
+        <td>{{ subject.all_perc_correct|round(2) }}</td>
+        <td>{{ subject.all_difficult_mean_rt|round(2) }}ms</td>
+        <td><img src="{{ subject.id }}/img/mean_rt_dist_post.png"/></td>
+        <td><img src="{{ subject.id }}/img/mean_rt_post.png"/></td>
+        <td><img src="{{ subject.id }}/img/diff_mean_rt_post.png"/></td>
+        <td><img src="{{ subject.id }}/img/mean_perc_correct_post.png"/></td>
     </tr>
     {% endfor %}
     </tbody>

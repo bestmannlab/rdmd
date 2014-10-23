@@ -37,27 +37,19 @@
     <thead>
     <tr>
         <th>Subject</th>
-        <th>Pre RT: a</th>
-        <th>Pre RT: k</th>
-        <th>Pre RT: tr</th>
-        <th>Stim RT: a</th>
-        <th>Stim RT: k</th>
-        <th>Stim RT: tr</th>
-        <th>Post RT: a</th>
-        <th>Post RT: k</th>
-        <th>Post RT: tr</th>
-        <th>Pre Acc: alpha</th>
-        <th>Pre Acc: beta</th>
-        <th>Stim Acc: alpha</th>
-        <th>Stim Acc: beta</th>
-        <th>Post Acc: alpha</th>
-        <th>Post Acc: beta</th>
-        <th>Pre % correct</th>
-        <th>Pre Mean RT</th>
-        <th>Stim % correct</th>
-        <th>Stim Mean RT</th>
-        <th>Post % correct</th>
-        <th>Post Mean RT</th>
+        {% for session in rinfo.subjects.values()[0].sessions %}
+            <th>{{ session }} RT: a</th>
+            <th>{{ session }} RT: k</th>
+            <th>{{ session }} RT: tr</th>
+        {% endfor %}
+        {% for session in rinfo.subjects.values()[0].sessions %}
+            <th>{{ session }} Acc: alpha</th>
+            <th>{{ session }} Acc: beta</th>
+        {% endfor %}
+        {% for session in rinfo.subjects.values()[0].sessions %}
+            <th>{{ session }} % correct</th>
+            <th>{{ session }} Mean RT</th>
+        {% endfor %}
         <th>% correct</th>
         <th>Mean RT</th>
     </tr>
@@ -66,27 +58,19 @@
     {% for subj_id,subject in rinfo.subjects.iteritems() %}
     <tr>
         <td><a href="{{ subj_id }}/{{ subject.output_file }}">{{ subj_id }}</a></td>
-        <td>{{ subject.sessions['pre'].a|round(3) }}</td>
-        <td>{{ subject.sessions['pre'].k|round(3) }}</td>
-        <td>{{ subject.sessions['pre'].tr|round(3) }}</td>
-        <td>{{ subject.sessions['stim'].a|round(3) }}</td>
-        <td>{{ subject.sessions['stim'].k|round(3) }}</td>
-        <td>{{ subject.sessions['stim'].tr|round(3) }}</td>
-        <td>{{ subject.sessions['post'].a|round(3) }}</td>
-        <td>{{ subject.sessions['post'].k|round(3) }}</td>
-        <td>{{ subject.sessions['post'].tr|round(3) }}</td>
-        <td>{{ subject.sessions['pre'].alpha|round(3) }}</td>
-        <td>{{ subject.sessions['pre'].beta|round(3) }}</td>
-        <td>{{ subject.sessions['stim'].alpha|round(3) }}</td>
-        <td>{{ subject.sessions['stim'].beta|round(3) }}</td>
-        <td>{{ subject.sessions['post'].alpha|round(3) }}</td>
-        <td>{{ subject.sessions['post'].beta|round(3) }}</td>
-        <td>{{ subject.sessions['pre'].perc_correct|round(2) }}</td>
-        <td>{{ subject.sessions['pre'].difficult_mean_rt|round(2) }}</td>
-        <td>{{ subject.sessions['stim'].perc_correct|round(2) }}</td>
-        <td>{{ subject.sessions['stim'].difficult_mean_rt|round(2) }}</td>
-        <td>{{ subject.sessions['post'].perc_correct|round(2) }}</td>
-        <td>{{ subject.sessions['post'].difficult_mean_rt|round(2) }}</td>
+        {% for session in subject.sessions %}
+            <td>{{ subject.sessions[session].a|round(3) }}</td>
+            <td>{{ subject.sessions[session].k|round(3) }}</td>
+            <td>{{ subject.sessions[session].tr|round(3) }}</td>
+        {% endfor %}
+        {% for session in subject.sessions %}
+            <td>{{ subject.sessions[session].alpha|round(3) }}</td>
+            <td>{{ subject.sessions[session].beta|round(3) }}</td>
+        {% endfor %}
+        {% for session in subject.sessions %}
+            <td>{{ subject.sessions[session].perc_correct|round(2) }}</td>
+            <td>{{ subject.sessions[session].difficult_mean_rt|round(2) }}</td>
+        {% endfor %}
         <td>{{ subject.perc_correct|round(2) }}</td>
         <td>{{ subject.difficult_mean_rt|round(2) }}</td>
     </tr>

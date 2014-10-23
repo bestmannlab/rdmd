@@ -11,6 +11,18 @@ class Struct():
     def __init__(self):
         pass
 
+def mdm_outliers(dist):
+    c=1.1926
+    medians=[]
+    for idx,x in enumerate(dist):
+        medians.append(np.median(np.abs(x-dist)))
+    mdm=c*np.median(medians)
+    outliers=[]
+    for idx,x in enumerate(dist):
+        if np.median(np.abs(x-dist))/mdm>3:
+            outliers.append(idx)
+    return outliers
+
 def save_to_png(fig, output_file):
     fig.set_facecolor("#FFFFFF")
     canvas = FigureCanvasAgg(fig)
