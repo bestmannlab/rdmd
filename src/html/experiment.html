@@ -21,6 +21,7 @@
                 $("#tr_normality_table").tablesorter();
                 $("#perc_correct_normality_table").tablesorter();
                 $("#rt_normality_table").tablesorter();
+                $('#speed_normality_table').tablesorter();
             }
     );
 </script>
@@ -46,6 +47,14 @@
     <tr>
         <td><img src="{{ rinfo.urls['diff_mean_rt_pre'] }}"/></td>
         <td><img src="{{ rinfo.urls['diff_mean_rt_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['mean_speed_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['mean_speed_dist_post'] }}"/></td>
+    </tr>
+    <tr>
+        <td><img src="{{ rinfo.urls['diff_mean_speed_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['diff_mean_speed_post'] }}"/></td>
     </tr>
     <tr>
         <td><img src="{{ rinfo.urls['mean_perc_correct_pre'] }}"/></td>
@@ -79,6 +88,12 @@
     <tr>
         <td><img src="{{ rinfo.urls['coherence_mean_rt_pre'][coherence] }}"/></td>
         <td><img src="{{ rinfo.urls['coherence_mean_rt_post'][coherence] }}"/></td>
+    </tr>
+    {% endfor %}
+    {% for coherence in rinfo.all_coherence_levels['anode'] %}
+    <tr>
+        <td><img src="{{ rinfo.urls['coherence_mean_speed_pre'][coherence] }}"/></td>
+        <td><img src="{{ rinfo.urls['coherence_mean_speed_post'][coherence] }}"/></td>
     </tr>
     {% endfor %}
     </tbody>
@@ -286,10 +301,10 @@ Cathode: t={{ rinfo.cathode_tr_stats[0]|round(3) }}, p={{ rinfo.cathode_tr_stats
     </tr>
     </thead>
     <tbody>
-    {% for condition in rinfo.rt_means %}
+    {% for condition in rinfo.rt_means_mean %}
     <tr>
         <td>{{ condition }}</td>
-        <td>{{ rinfo.rt_means[condition]|round(3) }}</td>
+        <td>{{ rinfo.rt_means_mean[condition]|round(3) }}</td>
         <td>{{ rinfo.rt_stats[condition][0]|round(3) }}</td>
         <td>{{ rinfo.rt_stats[condition][1]|round(4) }}</td>
     </tr>
@@ -298,9 +313,36 @@ Cathode: t={{ rinfo.cathode_tr_stats[0]|round(3) }}, p={{ rinfo.cathode_tr_stats
 </table>
 
 <h4>RT comparison</h4>
-Anode: U={{ rinfo.anode_rt_stats[0]|round(3) }}, p={{ rinfo.anode_rt_stats[1]|round(4) }}
+Anode: t={{ rinfo.anode_rt_stats[0]|round(3) }}, p={{ rinfo.anode_rt_stats[1]|round(4) }}
 <br>
-Cathode: U={{ rinfo.cathode_rt_stats[0]|round(3) }}, p={{ rinfo.cathode_rt_stats[1]|round(4) }}
+Cathode: t={{ rinfo.cathode_rt_stats[0]|round(3) }}, p={{ rinfo.cathode_rt_stats[1]|round(4) }}
+
+<h4>Speed normality test</h4>
+<table border="1" class="tablesorter" id="speed_normality_table">
+    <thead>
+    <tr>
+        <th>Condition</th>
+        <th>Mean Speed</th>
+        <th>W</th>
+        <th>p</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for condition in rinfo.speed_means_mean %}
+    <tr>
+        <td>{{ condition }}</td>
+        <td>{{ rinfo.speed_means_mean[condition]|round(3) }}</td>
+        <td>{{ rinfo.speed_stats[condition][0]|round(3) }}</td>
+        <td>{{ rinfo.speed_stats[condition][1]|round(4) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<h4>Speed comparison</h4>
+Anode: t={{ rinfo.anode_speed_stats[0]|round(3) }}, p={{ rinfo.anode_speed_stats[1]|round(4) }}
+<br>
+Cathode: t={{ rinfo.cathode_speed_stats[0]|round(3) }}, p={{ rinfo.cathode_speed_stats[1]|round(4) }}
 
 <h4>Subjects</h4>
 <table border="1" class="tablesorter" id="subjects_table">
@@ -310,9 +352,9 @@ Cathode: U={{ rinfo.cathode_rt_stats[0]|round(3) }}, p={{ rinfo.cathode_rt_stats
         <th>Excluded</th>
         <th>% Correct</th>
         <th>Mean RT in 0% coherence trials</th>
-        <th>RT Dist</th>
+        <th>Speed Dist</th>
         <th>RT</th>
-        <th>Diff RT</th>
+        <th>Diff Speed</th>
         <th>% Correct</th>
     </tr>
     </thead>
@@ -323,9 +365,9 @@ Cathode: U={{ rinfo.cathode_rt_stats[0]|round(3) }}, p={{ rinfo.cathode_rt_stats
         <td>{{ subject.excluded }}</td>
         <td>{{ subject.all_perc_correct|round(2) }}</td>
         <td>{{ subject.all_difficult_mean_rt|round(2) }}ms</td>
-        <td><img src="{{ subject.id }}/img/mean_rt_dist_post.png"/></td>
+        <td><img src="{{ subject.id }}/img/mean_speed_dist_post.png"/></td>
         <td><img src="{{ subject.id }}/img/mean_rt_post.png"/></td>
-        <td><img src="{{ subject.id }}/img/diff_mean_rt_post.png"/></td>
+        <td><img src="{{ subject.id }}/img/diff_mean_speed_post.png"/></td>
         <td><img src="{{ subject.id }}/img/mean_perc_correct_post.png"/></td>
     </tr>
     {% endfor %}

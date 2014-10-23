@@ -68,6 +68,10 @@
         <td><img src="{{ rinfo.urls['rt_dist_post'] }}"/></td>
     </tr>
     <tr>
+        <td><img src="{{ rinfo.urls['speed_dist_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['speed_dist_post'] }}"/></td>
+    </tr>
+    <tr>
         <td><img src="{{ rinfo.urls['perc_correct_pre'] }}"/></td>
         <td><img src="{{ rinfo.urls['perc_correct_post'] }}"/></td>
     </tr>
@@ -87,6 +91,7 @@
         <th>Coherence</th>
         <th>Response</th>
         <th>RT (ms)</th>
+        <th>Speed</th>
         <th>Excluded</th>
     </tr>
     </thead>
@@ -97,6 +102,7 @@
         <td>{{ trial.coherence }}</td>
         <td>{{ trial.response }}</td>
         <td>{{ trial.rt|round(2) }}</td>
+        <td>{{ trial.speed|round(3) }}</td>
         <td>{{ trial.excluded }}</td>
     </tr>
     {% endfor %}

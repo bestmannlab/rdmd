@@ -29,6 +29,10 @@
         <td><img src="{{ rinfo.urls['rt_dist_post'] }}"/></td>
     </tr>
     <tr>
+        <td><img src="{{ rinfo.urls['speed_dist_post'] }}"/></td>
+        <td></td>
+    </tr>
+    <tr>
         <td><img src="{{ rinfo.urls['perc_correct_post'] }}"/></td>
         <td></td>
     </tr>
@@ -60,6 +64,11 @@
         <td><img src="{{ rinfo.urls['diff_mean_rt_post'] }}"/></td>
     </tr>
     <tr>
+        <td><img src="{{ rinfo.urls['mean_speed_dist_post'] }}"/></td>
+        <td><img src="{{ rinfo.urls['diff_mean_speed_post'] }}"/></td>
+        <td></td>
+    </tr>
+    <tr>
         <td><img src="{{ rinfo.urls['mean_perc_correct_post'] }}"/></td>
         <td></td>
         <td></td>
@@ -67,7 +76,7 @@
     {% for coherence in rinfo.coherence_mean_rt_urls %}
         <tr>
             <td><img src="{{ rinfo.urls['coherence_mean_rt_post'][coherence] }}"/></td>
-            <td></td>
+            <td><img src="{{ rinfo.urls['coherence_mean_speed_post'][coherence] }}"/></td>
             <td></td>
         </tr>
     {% endfor %}

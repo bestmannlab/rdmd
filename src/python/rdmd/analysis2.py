@@ -120,10 +120,14 @@ class ConditionAggregatedReport:
         self.coherent_responses={}
         self.difficult_rts={}
         self.rts={}
+        self.speeds={}
         self.coherence_responses={}
         self.coherence_rts={}
+        self.coherence_speeds={}
         self.mean_rt={}
         self.std_rt={}
+        self.mean_speed={}
+        self.std_speed={}
         self.coherence_perc_correct={}
         self.perc_correct={}
         self.difficult_mean_rt={}
@@ -136,6 +140,8 @@ class ConditionAggregatedReport:
         self.all_coherence_levels={}
         self.mean_rt={}
         self.std_rt={}
+        self.mean_speed={}
+        self.std_speed={}
         self.coherence_perc_correct={}
         for condition in self.conditions:
             self.perc_correct[condition]=np.mean(self.coherent_responses[condition])*100.0
@@ -145,9 +151,13 @@ class ConditionAggregatedReport:
                 self.mean_rt[condition]=[]
                 self.std_rt[condition]=[]
                 self.coherence_perc_correct[condition]=[]
+                self.mean_speed[condition]=[]
+                self.std_speed[condition]=[]
             for coherence in self.all_coherence_levels[condition]:
                 self.mean_rt[condition].append(np.mean(self.coherence_rts[condition][coherence]))
                 self.std_rt[condition].append(np.std(self.coherence_rts[condition][coherence])/float(len(self.coherence_rts[condition][coherence])))
+                self.mean_speed[condition].append(np.mean(self.coherence_speeds[condition][coherence]))
+                self.std_speed[condition].append(np.std(self.coherence_speeds[condition][coherence])/float(len(self.coherence_speeds[condition][coherence])))
                 if coherence>0:
                     self.coherence_perc_correct[condition].append(np.mean(self.coherence_responses[condition][coherence]))
         self.rt_fit={}
@@ -176,6 +186,7 @@ class ConditionAggregatedReport:
                 self.conditions.append(condition)
                 self.coherence_responses[condition]={}
                 self.coherence_rts[condition]={}
+                self.coherence_speeds[condition]={}
             for coherence in lower_level_obj.coherence_responses[condition]:
                 if not coherence in self.coherence_responses[condition]:
                     self.coherence_responses[condition][coherence]=[]
@@ -183,21 +194,28 @@ class ConditionAggregatedReport:
             for coherence in lower_level_obj.coherence_rts[condition]:
                 if not coherence in self.coherence_rts[condition]:
                     self.coherence_rts[condition][coherence]=[]
+                    self.coherence_speeds[condition][coherence]=[]
                 self.coherence_rts[condition][coherence].extend(lower_level_obj.coherence_rts[condition][coherence])
+                self.coherence_speeds[condition][coherence].extend(lower_level_obj.coherence_speeds[condition][coherence])
             if not condition in self.rts:
                 self.rts[condition]=[]
+                self.speeds[condition]=[]
             self.rts[condition].extend(lower_level_obj.rts[condition])
+            self.speeds[condition].extend(lower_level_obj.speeds[condition])
 
     def plot_stats(self, report_dir, suffix):
         condition_rt_fits=[]
         condition_all_coherence_levels=[]
         condition_mean_rts=[]
         condition_std_rts=[]
+        condition_mean_speeds=[]
+        condition_std_speeds=[]
         condition_labels=[]
         condition_acc_fits=[]
         condition_perc_correct_coherence_levels=[]
         condition_perc_correct=[]
         condition_rts=[]
+        condition_speeds=[]
         colors=[]
         styles=[]
         alphas=[]
@@ -207,11 +225,14 @@ class ConditionAggregatedReport:
                 condition_all_coherence_levels.append(self.all_coherence_levels[condition])
                 condition_mean_rts.append(self.mean_rt[condition])
                 condition_std_rts.append(self.std_rt[condition])
+                condition_mean_speeds.append(self.mean_speed[condition])
+                condition_std_speeds.append(self.std_speed[condition])
                 condition_labels.append(condition)
                 condition_acc_fits.append(self.acc_fit[condition])
                 condition_perc_correct_coherence_levels.append(self.all_coherence_levels[condition][1:])
                 condition_perc_correct.append(self.coherence_perc_correct[condition])
                 condition_rts.append(self.rts[condition])
+                condition_speeds.append(self.speeds[condition])
                 colors.append(condition_colors[condition])
                 styles.append(condition_styles[condition])
                 alphas.append(condition_alphas[condition])
@@ -230,6 +251,10 @@ class ConditionAggregatedReport:
         self.urls['mean_rt_dist_%s' % suffix]='%s.png' % furl
         plot_rt_dist(furl, report_dir, condition_rts, colors, alphas, condition_labels)
 
+        furl='img/mean_speed_dist_%s' % suffix
+        self.urls['mean_speed_dist_%s' % suffix]='%s.png' % furl
+        plot_speed_dist(furl, report_dir, condition_speeds, colors, alphas, condition_labels)
+
         self.urls['coherence_mean_rt_%s' % suffix]={}
         for coherence in self.all_coherence_levels[self.all_coherence_levels.keys()[0]]:
             condition_coherence_rts=[]
@@ -241,17 +266,41 @@ class ConditionAggregatedReport:
             plot_coherence_rt_dist(furl, report_dir, coherence, condition_coherence_rts, colors, alphas,
                 condition_labels)
 
+        self.urls['coherence_mean_speed_%s' % suffix]={}
+        for coherence in self.all_coherence_levels[self.all_coherence_levels.keys()[0]]:
+            condition_coherence_speeds=[]
+            for condition in self.conditions:
+                if not condition=='control' and not condition.startswith('sham - post'):
+                    condition_coherence_speeds.append(self.coherence_speeds[condition][coherence])
+            furl='img/mean_speed_dist_%s_%.4f' % (suffix,coherence)
+            self.urls['coherence_mean_speed_%s' % suffix][coherence]='%s.png' % furl
+            plot_coherence_speed_dist(furl, report_dir, coherence, condition_coherence_speeds, colors, alphas,
+                condition_labels)
+
         if 'anode' in self.conditions and 'cathode' in self.conditions:
             furl='img/diff_mean_rt_%s' % suffix
             fname=os.path.join(report_dir, furl)
             self.urls['diff_mean_rt_%s' % suffix]='%s.png' % furl
             fig=plt.figure()
             plt.errorbar(self.all_coherence_levels['anode'],np.array(self.mean_rt['anode'])-np.array(self.mean_rt['sham - pre - anode']),yerr=self.std_rt['anode'],fmt='or')
-            plt.errorbar(self.all_coherence_levels['cathode'],np.array(self.mean_rt['cathode'])-np.array(self.mean_rt['sham - pre - cathode'])  ,yerr=self.std_rt['cathode'],fmt='og')
+            plt.errorbar(self.all_coherence_levels['cathode'],np.array(self.mean_rt['cathode'])-np.array(self.mean_rt['sham - pre - cathode']),yerr=self.std_rt['cathode'],fmt='og')
             plt.legend(loc='best')
             plt.xscale('log')
             plt.xlabel('Coherence')
             plt.ylabel('Decision time (s)')
+            save_to_png(fig, '%s.png' % fname)
+            plt.close(fig)
+
+            furl='img/diff_mean_speed_%s' % suffix
+            fname=os.path.join(report_dir, furl)
+            self.urls['diff_mean_speed_%s' % suffix]='%s.png' % furl
+            fig=plt.figure()
+            plt.errorbar(self.all_coherence_levels['anode'],np.array(self.mean_speed['anode'])-np.array(self.mean_speed['sham - pre - anode']),yerr=self.std_speed['anode'],fmt='or')
+            plt.errorbar(self.all_coherence_levels['cathode'],np.array(self.mean_speed['cathode'])-np.array(self.mean_speed['sham - pre - cathode']),yerr=self.std_speed['cathode'],fmt='og')
+            plt.legend(loc='best')
+            plt.xscale('log')
+            plt.xlabel('Coherence')
+            plt.ylabel('Speed')
             save_to_png(fig, '%s.png' % fname)
             plt.close(fig)
 
@@ -311,8 +360,10 @@ class Experiment(ConditionAggregatedReport):
         self.coherent_responses={}
         self.difficult_rts={}
         self.rts={}
+        self.speeds={}
         self.coherence_responses={}
         self.coherence_rts={}
+        self.coherence_speeds={}
         all_coherent_responses=[]
         all_difficult_rts=[]
         self.a_vals={
@@ -357,6 +408,18 @@ class Experiment(ConditionAggregatedReport):
             'anode': [],
             'cathode': []
         }
+        self.rt_mean_vals={
+            'sham - pre - anode': [],
+            'sham - pre - cathode': [],
+            'anode': [],
+            'cathode': []
+        }
+        self.speed_mean_vals={
+            'sham - pre - anode': [],
+            'sham - pre - cathode': [],
+            'anode': [],
+            'cathode': []
+        }
         for subject in self.subjects:
             if not subject.excluded:
                 for condition in self.a_vals:
@@ -367,6 +430,8 @@ class Experiment(ConditionAggregatedReport):
                     self.beta_vals[condition].append(subject.beta[condition])
                     self.thresh_vals[condition].append(subject.thresh[condition])
                     self.perc_correct_vals[condition].append(subject.perc_correct[condition])
+                    self.rt_mean_vals[condition].append(np.mean(subject.rts[condition]))
+                    self.speed_mean_vals[condition].append(np.mean(subject.speeds[condition]))
                 self.aggregate_low_level_stats(subject)
                 for session in subject.sessions:
                     for run in session.runs:
@@ -417,8 +482,10 @@ class Experiment(ConditionAggregatedReport):
         self.coherence_rt_stats={}
         self.perc_correct_means={}
         self.perc_correct_stats={}
-        self.rt_means={}
+        self.rt_means_mean={}
         self.rt_stats={}
+        self.speed_means_mean={}
+        self.speed_stats={}
         for condition in self.thresh_vals:
             self.thresh_vals[condition]=np.array(self.thresh_vals[condition])
             self.thresh_means[condition]=np.mean(self.thresh_vals[condition])
@@ -448,9 +515,13 @@ class Experiment(ConditionAggregatedReport):
             self.perc_correct_means[condition]=np.mean(self.perc_correct_vals[condition])
             self.perc_correct_stats[condition]=shapiro(self.perc_correct_vals[condition])
 
-            self.rts[condition]=np.array(self.rts[condition])
-            self.rt_means[condition]=np.mean(self.rts[condition])
-            self.rt_stats[condition]=shapiro(self.rts[condition])
+            self.rt_mean_vals[condition]=np.array(self.rt_mean_vals[condition])
+            self.rt_means_mean[condition]=np.mean(self.rt_mean_vals[condition])
+            self.rt_stats[condition]=shapiro(self.rt_mean_vals[condition])
+
+            self.speed_mean_vals[condition]=np.array(self.speed_mean_vals[condition])
+            self.speed_means_mean[condition]=np.mean(self.speed_mean_vals[condition])
+            self.speed_stats[condition]=shapiro(self.speed_mean_vals[condition])
 
 
         self.anode_perc_correct_stats=ttest_rel(self.perc_correct['anode'],self.perc_correct['sham - pre - anode'])
@@ -465,8 +536,11 @@ class Experiment(ConditionAggregatedReport):
         self.anode_thresh_stats=ttest_rel(self.thresh_vals['anode'],self.thresh_vals['sham - pre - anode'])
         self.cathode_thresh_stats=ttest_rel(self.thresh_vals['cathode'],self.thresh_vals['sham - pre - cathode'])
 
-        self.anode_rt_stats=mannwhitneyu(self.rts['anode'], self.rts['sham - pre - anode'])
-        self.cathode_rt_stats=mannwhitneyu(self.rts['cathode'], self.rts['sham - pre - cathode'])
+        self.anode_rt_stats=ttest_rel(self.rt_mean_vals['anode'], self.rt_mean_vals['sham - pre - anode'])
+        self.cathode_rt_stats=ttest_rel(self.rt_mean_vals['cathode'], self.rt_mean_vals['sham - pre - cathode'])
+
+        self.anode_speed_stats=ttest_rel(self.speed_mean_vals['anode'], self.speed_mean_vals['sham - pre - anode'])
+        self.cathode_speed_stats=ttest_rel(self.speed_mean_vals['cathode'], self.speed_mean_vals['sham - pre - cathode'])
 
         self.anode_a_stats=wilcoxon(self.a_vals['anode'],self.a_vals['sham - pre - anode'])
         self.cathode_a_stats=wilcoxon(self.a_vals['cathode'],self.a_vals['sham - pre - cathode'])
@@ -530,9 +604,12 @@ class Subject(ConditionAggregatedReport):
         session_all_coherence_levels=[]
         session_mean_rts=[]
         session_std_rts=[]
+        session_mean_speeds=[]
+        session_std_speeds=[]
         session_perc_correct_coherence_levels=[]
         session_perc_correct=[]
         session_rts=[]
+        session_speeds=[]
         session_colors=[]
         session_alphas=[]
         session_styles=[]
@@ -545,12 +622,17 @@ class Subject(ConditionAggregatedReport):
                     session_all_coherence_levels.append(run.all_coherence_levels)
                     session_mean_rts.append(run.mean_rt)
                     session_std_rts.append(run.std_rt)
+                    session_mean_speeds.append(run.mean_speed)
+                    session_std_speeds.append(run.std_speed)
                     session_perc_correct_coherence_levels.append(run.all_coherence_levels[1:])
                     session_perc_correct.append(run.coherence_perc_correct)
                     rts=[]
+                    speeds=[]
                     for run in session.runs:
                         rts.extend(run.rts)
+                        speeds.extend(run.speeds)
                     session_rts.append(rts)
+                    session_speeds.append(speeds)
                     session_colors.append(colors[run_idx])
                     session_styles.append(linestyles[session_idx])
                     session_labels.append('session %d, run %d - %s' % ((session_idx+1),(run_idx+1),run.condition))
@@ -569,6 +651,10 @@ class Subject(ConditionAggregatedReport):
         furl='img/rt_dist_%s' % suffix
         self.urls['rt_dist_%s' % suffix]='%s.png' % furl
         plot_rt_dist(furl, report_dir, session_rts, session_colors, session_alphas, session_labels)
+
+        furl='img/speed_dist_%s' % suffix
+        self.urls['speed_dist_%s' % suffix]='%s.png' % furl
+        plot_speed_dist(furl, report_dir, session_speeds, session_colors, session_alphas, session_labels)
 
 
     def create_report(self, data_dir, report_dir):
@@ -619,12 +705,15 @@ class Session(ConditionAggregatedReport):
                 if not run.condition in self.coherence_responses:
                     self.coherence_responses[run.condition]={}
                     self.coherence_rts[run.condition]={}
+                    self.coherence_speeds[run.condition]={}
                 if not run.condition in self.coherent_responses:
                     self.coherent_responses[run.condition]=[]
                     self.difficult_rts[run.condition]=[]
                 if not run.condition in self.rts:
                     self.rts[run.condition]=[]
+                    self.speeds[run.condition]=[]
                 self.rts[run.condition].extend(run.rts)
+                self.speeds[run.condition].extend(run.speeds)
                 for trial in run.trials:
                     if not trial.excluded:
                         if not trial.coherence in self.coherence_responses[run.condition]:
@@ -633,7 +722,9 @@ class Session(ConditionAggregatedReport):
                         if trial.coherence==0 or trial.response:
                             if not trial.coherence in self.coherence_rts[run.condition]:
                                 self.coherence_rts[run.condition][trial.coherence]=[]
+                                self.coherence_speeds[run.condition][trial.coherence]=[]
                             self.coherence_rts[run.condition][trial.coherence].append(trial.rt)
+                            self.coherence_speeds[run.condition][trial.coherence].append(trial.speed)
                         if trial.coherence>0:
                             self.coherent_responses[run.condition].append(trial.response)
                             all_coherent_responses.append(trial.response)
@@ -660,6 +751,7 @@ class Session(ConditionAggregatedReport):
         run_rts=[]
         run_mean_rts=[]
         run_std_rts=[]
+        run_speeds=[]
         run_labels=[]
         for idx,run in enumerate(self.runs):
             if not run.excluded:
@@ -669,6 +761,7 @@ class Session(ConditionAggregatedReport):
                 run_perc_correct_coherence_levels.append(run.all_coherence_levels[1:])
                 run_perc_correct.append(run.coherence_perc_correct)
                 run_rts.append(run.rts)
+                run_speeds.append(run.speeds)
                 run_mean_rts.append(run.mean_rt)
                 run_std_rts.append(run.std_rt)
                 run_labels.append('run %d - %s' % ((idx+1),run.condition))
@@ -686,6 +779,10 @@ class Session(ConditionAggregatedReport):
         furl='img/rt_dist_%s' % suffix
         self.urls['rt_dist_%s' % suffix]='%s.png' % furl
         plot_rt_dist(furl, report_dir, run_rts, colors, alphas, run_labels)
+
+        furl='img/speed_dist_%s' % suffix
+        self.urls['speed_dist_%s' % suffix]='%s.png' % furl
+        plot_speed_dist(furl, report_dir, run_speeds, colors, alphas, run_labels)
 
     def create_report(self, data_dir, report_dir):
         make_report_dirs(report_dir)
@@ -765,12 +862,15 @@ class Run:
 
         # All RTs
         self.rts=[]
+        self.speeds=[]
         for trial in self.trials:
             if not trial.excluded and (trial.coherence==0 or trial.response):
                 self.rts.append(trial.rt)
+                self.speeds.append(trial.speed)
 
         self.coherence_responses={}
         self.coherence_rts={}
+        self.coherence_speeds={}
         for trial in self.trials:
             if not trial.excluded:
                 if not trial.coherence in self.coherence_responses:
@@ -779,16 +879,22 @@ class Run:
                 if trial.coherence==0 or trial.response:
                     if not trial.coherence in self.coherence_rts:
                         self.coherence_rts[trial.coherence]=[]
+                        self.coherence_speeds[trial.coherence]=[]
                     self.coherence_rts[trial.coherence].append(trial.rt)
+                    self.coherence_speeds[trial.coherence].append(trial.speed)
 
         self.all_coherence_levels=sorted(self.coherence_responses.keys())
 
         self.mean_rt=[]
         self.std_rt=[]
+        self.mean_speed=[]
+        self.std_speed=[]
         self.coherence_perc_correct=[]
         for coherence in self.all_coherence_levels:
             self.mean_rt.append(np.mean(self.coherence_rts[coherence]))
             self.std_rt.append(np.std(self.coherence_rts[coherence])/float(len(self.coherence_rts[coherence])))
+            self.mean_speed.append(np.mean(self.coherence_speeds[coherence]))
+            self.std_speed.append(np.std(self.coherence_speeds[coherence])/float(len(self.coherence_speeds[coherence])))
             if coherence>0:
                 self.coherence_perc_correct.append(np.mean(self.coherence_responses[coherence]))
 
@@ -814,6 +920,10 @@ class Run:
         furl='img/rt_dist_%s' % prefix
         self.urls['rt_dist_%s' % prefix]='%s.png' % furl
         plot_rt_dist(furl, report_dir, [self.rts],['b'],[1],[None])
+
+        furl='img/speed_dist_%s' % prefix
+        self.urls['speed_dist_%s' % prefix]='%s.png' % furl
+        plot_speed_dist(furl, report_dir, [self.speeds],['b'],[1],[None])
 
         self.urls['coherence_rt_dist_%s' % prefix]={}
         for coherence,rts in self.coherence_rts.iteritems():
@@ -862,6 +972,7 @@ class Trial:
         self.coherence=coherence
         self.response=response
         self.rt=rt
+        self.speed=1.0/rt
         self.excluded=False
 
 
@@ -932,6 +1043,23 @@ def plot_rt_dist(furl, report_dir, rts_list, colors, alphas, labels):
     save_to_png(fig, '%s.png' % fname)
     plt.close(fig)
 
+def plot_speed_dist(furl, report_dir, speeds_list, colors, alphas, labels):
+    fname=os.path.join(report_dir,furl)
+    fig=plt.figure()
+
+    for rts, color, alpha, label in zip(speeds_list,colors,alphas,labels):
+        rt_hist,rt_bins=np.histogram(np.array(rts), bins=10, density=True)
+        bin_width=rt_bins[1]-rt_bins[0]
+        bars=plt.bar(rt_bins[:-1], rt_hist, width=bin_width, label=label)
+        for bar in bars:
+            bar.set_color(color)
+            bar.set_alpha(alpha)
+    plt.legend(loc='best')
+    plt.xlabel('Speed')
+    plt.ylabel('Proportion of trials')
+    save_to_png(fig, '%s.png' % fname)
+    plt.close(fig)
+
 def plot_coherence_rt_dist(furl, report_dir, coherence, rts_list, colors, alphas, labels):
     fname=os.path.join(report_dir,furl)
     fig=plt.figure()
@@ -944,6 +1072,23 @@ def plot_coherence_rt_dist(furl, report_dir, coherence, rts_list, colors, alphas
             bar.set_alpha(alpha)
     plt.legend(loc='best')
     plt.xlabel('RT')
+    plt.ylabel('Proportion of trials')
+    plt.title('Coherence=%.4f' % coherence)
+    save_to_png(fig, '%s.png' % fname)
+    plt.close(fig)
+
+def plot_coherence_speed_dist(furl, report_dir, coherence, speeds_list, colors, alphas, labels):
+    fname=os.path.join(report_dir,furl)
+    fig=plt.figure()
+    for speeds, color, alpha, label in zip(speeds_list, colors, alphas, labels):
+        speed_hist,speed_bins=np.histogram(np.array(speeds), bins=10, density=True)
+        bin_width=speed_bins[1]-speed_bins[0]
+        bars=plt.bar(speed_bins[:-1],speed_hist,width=bin_width, label=label)
+        for bar in bars:
+            bar.set_color(color)
+            bar.set_alpha(alpha)
+    plt.legend(loc='best')
+    plt.xlabel('Speed')
     plt.ylabel('Proportion of trials')
     plt.title('Coherence=%.4f' % coherence)
     save_to_png(fig, '%s.png' % fname)
