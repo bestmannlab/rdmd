@@ -81,6 +81,16 @@
             <td><img src="{{ rinfo.urls['coherence_rt_dist_post'][coherence] }}"/></td>
         </tr>
     {% endfor %}
+    <tr>
+        <td><img src="{{ rinfo.urls['sat_pre'] }}"/></td>
+        <td><img src="{{ rinfo.urls['sat_post'] }}"/></td>
+    </tr>
+    {% for coherence in rinfo.all_coherence_levels %}
+    <tr>
+        <td><img src="{{ rinfo.urls['coherence_sat_pre'][coherence] }}"/></td>
+        <td><img src="{{ rinfo.urls['coherence_sat_post'][coherence] }}"/></td>
+    </tr>
+    {% endfor %}
 </table>
 
 <h4>Trials</h4>

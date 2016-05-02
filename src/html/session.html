@@ -32,7 +32,7 @@
     </tr>
     <tr>
         <td><img src="{{ rinfo.urls['rt_speed_post'] }}"/> </td>
-        <td></td>
+        <td><img src="{{ rinfo.urls['sat_post'] }}"/></td>
     </tr>
     <tr>
         <td><img src="{{ rinfo.urls['perc_correct_post'] }}"/></td>
@@ -84,9 +84,15 @@
         <td><img src="{{ rinfo.urls['mean_perc_correct_post'] }}"/></td>
         <td></td>
     </tr>
-    {% for coherence in rinfo.coherence_mean_rt_urls %}
+    {% for coherence in rinfo.all_coherence_levels.values()[0] %}
     <tr>
         <td><img src="{{ rinfo.urls['coherence_mean_rt_post'][coherence] }}"/></td>
+        <td></td>
+    </tr>
+    {% endfor %}
+    {% for coherence in rinfo.all_coherence_levels.values()[0] %}
+    <tr>
+        <td><img src="{{ rinfo.urls['coherence_sat_post'][coherence] }}"/></td>
         <td></td>
     </tr>
     {% endfor %}
