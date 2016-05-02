@@ -1,4 +1,5 @@
 from glob import glob
+import math
 import os
 import numpy as np
 from shutil import copytree, copyfile
@@ -239,3 +240,34 @@ def twoway_interaction(groups, first_factor_label, second_factor_label, format="
 
     return output
 
+
+def get_twod_confidence_interval(x, y):
+    covariance=np.cov(x,y)
+    [eigenvals, eigenvecs ] = np.linalg.eig(covariance)
+    max_eigenval=np.max(eigenvals)
+    max_eigenval_idx=np.where(eigenvals==max_eigenval)[0][0]
+    max_eigenvec=eigenvecs[:,max_eigenval_idx]
+    min_eigenval=np.min(eigenvals)
+    angle = math.atan2(max_eigenvec[1], max_eigenvec[0])
+    if angle < 0:
+        angle = angle + 2*math.pi
+    centroid_center=[np.mean(x),np.mean(y)]
+    # Get the 95% confidence interval error ellipse
+    chisquare_val = 2.4477
+    theta_grid = np.arange(0,2*math.pi+2*math.pi/100.0,2*math.pi/100.0)
+    phi = angle
+    X0=centroid_center[0]
+    Y0=centroid_center[1]
+    a=chisquare_val*np.sqrt(max_eigenval)
+    b=chisquare_val*np.sqrt(min_eigenval)
+    # the ellipse in x and y coordinates
+    ellipse_x_r  = a*np.cos( theta_grid )
+    ellipse_y_r  = b*np.sin( theta_grid )
+
+    #Define a rotation matrix
+    R = np.array([[ math.cos(phi), math.sin(phi)],[-math.sin(phi), math.cos(phi)]])
+
+    #let's rotate the ellipse to some angle phi
+    r_ellipse = np.dot(np.transpose(np.array([ellipse_x_r,ellipse_y_r])),R)
+
+    return r_ellipse[:,0] + X0,r_ellipse[:,1] + Y0
