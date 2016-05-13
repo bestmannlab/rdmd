@@ -22,15 +22,20 @@ def analyze_subject_accuracy_rt(subject, plot=False):
     condition_coherence_rt={}
     condition_coherence_rt_diff={}
     condition_accuracy_thresh={}
+    condition_overall_accuracy_rt={}
     for condition,trial_data in subject.session_data.iteritems():
         condition_coherence_accuracy[condition]={}
         condition_coherence_rt[condition]={}
+        condition_overall_accuracy_rt[condition]=[[],[]]
         # For each trial
         for trial_idx in range(trial_data.shape[0]):
             # Get coherence - negative coherences when direction is to the left
             coherence=trial_data[trial_idx,2]
             correct=trial_data[trial_idx,3]
             rt=trial_data[trial_idx,6]
+
+            condition_overall_accuracy_rt[condition][0].append(correct)
+            condition_overall_accuracy_rt[condition][1].append(rt)
 
             if not coherence in condition_coherence_accuracy[condition]:
                 condition_coherence_accuracy[condition][coherence]=[]
@@ -40,11 +45,14 @@ def analyze_subject_accuracy_rt(subject, plot=False):
                 condition_coherence_rt[condition][coherence]=[]
             condition_coherence_rt[condition][np.abs(coherence)].append(rt)
 
+        condition_overall_accuracy_rt[condition][0]=np.mean(condition_overall_accuracy_rt[condition][0])
+        condition_overall_accuracy_rt[condition][1]=np.mean(condition_overall_accuracy_rt[condition][1])
+
         coherences = sorted(condition_coherence_accuracy[condition].keys())
         accuracy=[]
         for coherence in coherences:
             accuracy.append(np.mean(condition_coherence_accuracy[condition][coherence]))
-        acc_fit = FitSigmoid(coherences, accuracy, guess=[0.0, 0.2], display=0)
+        acc_fit = FitWeibull(coherences, accuracy, guess=[0.0, 0.2], display=0)
         condition_accuracy_thresh[condition]=acc_fit.inverse(0.8)
 
     for stim_condition in ['Anode', 'Cathode']:
@@ -64,7 +72,7 @@ def analyze_subject_accuracy_rt(subject, plot=False):
 
         plot_choice_rt_diff(colors, condition_coherence_rt, plot_err=False)
 
-    return condition_coherence_accuracy, condition_coherence_rt, condition_coherence_rt_diff, condition_accuracy_thresh
+    return condition_coherence_accuracy, condition_coherence_rt, condition_coherence_rt_diff, condition_accuracy_thresh, condition_overall_accuracy_rt
 
 
 def analyze_subject_choice_hysteresis(subject, plot=False, itis='all'):
@@ -158,17 +166,23 @@ def analyze_accuracy_rt(subjects, plot=True, print_stats=True):
     condition_coherence_rt={}
     condition_coherence_rt_diff={}
     condition_accuracy_thresh={}
+    condition_overall_accuracy_rt={}
     # For each subject
     for subj_id in subjects:
         subject=subjects[subj_id]
 
-        subj_condition_coherence_accuracy, subj_condition_coherence_rt, subj_condition_coherence_rt_diff,subj_condition_accuracy_thresh=analyze_subject_accuracy_rt(subject, plot=False)
+        subj_condition_coherence_accuracy, subj_condition_coherence_rt, subj_condition_coherence_rt_diff,subj_condition_accuracy_thresh,subj_condition_overall_accuracy_rt=analyze_subject_accuracy_rt(subject, plot=False)
 
         for condition in conditions:
             if not condition in condition_coherence_accuracy:
                 condition_coherence_accuracy[condition]={}
                 condition_coherence_rt[condition]={}
                 condition_accuracy_thresh[condition]=[]
+                condition_overall_accuracy_rt[condition]=[[],[]]
+
+            condition_overall_accuracy_rt[condition][0].append(subj_condition_overall_accuracy_rt[condition][0])
+            condition_overall_accuracy_rt[condition][1].append(subj_condition_overall_accuracy_rt[condition][1])
+
             condition_accuracy_thresh[condition].append(subj_condition_accuracy_thresh[condition])
 
             for coherence in subj_condition_coherence_accuracy[condition]:
@@ -190,6 +204,8 @@ def analyze_accuracy_rt(subjects, plot=True, print_stats=True):
                 condition_coherence_rt_diff[condition][coherence].append(subj_condition_coherence_rt_diff[condition][coherence])
 
     if plot:
+        plot_sat(colors, condition_overall_accuracy_rt)
+
         plot_choice_accuracy(colors, condition_coherence_accuracy, plot_err=True)
 
         plot_choice_rt(colors, condition_coherence_rt)
@@ -231,6 +247,23 @@ def analyze_accuracy_rt(subjects, plot=True, print_stats=True):
             rtdiff_results[condition.lower()][param]['t']=result.tvalues[param]
             rtdiff_results[condition.lower()][param]['p']=result.pvalues[param]
 
+    sat_results={
+        'sham': {},
+        'cathode': {},
+        'anode': {}
+    }
+    sham_anode_overall_accuracy_rt=condition_overall_accuracy_rt['ShamPreAnode']
+    sham_anode_sat_ratio=(1000.0/np.array(sham_anode_overall_accuracy_rt[1]))/np.array(sham_anode_overall_accuracy_rt[0])
+    sham_cathode_overall_accuracy_rt=condition_overall_accuracy_rt['ShamPreCathode']
+    sham_cathode_sat_ratio=(1000.0/np.array(sham_cathode_overall_accuracy_rt[1]))/np.array(sham_cathode_overall_accuracy_rt[0])
+    anode_overall_accuracy_rt=condition_overall_accuracy_rt['Anode']
+    anode_sat_ratio=(1000.0/np.array(anode_overall_accuracy_rt[1]))/np.array(anode_overall_accuracy_rt[0])
+    cathode_overall_accuracy_rt=condition_overall_accuracy_rt['Cathode']
+    cathode_sat_ratio=(1000.0/np.array(cathode_overall_accuracy_rt[1]))/np.array(cathode_overall_accuracy_rt[0])
+    (sat_results['sham']['x'],sat_results['sham']['p'])=wilcoxon(sham_cathode_sat_ratio,sham_anode_sat_ratio)
+    (sat_results['cathode']['x'],sat_results['cathode']['p'])=wilcoxon(sham_cathode_sat_ratio,cathode_sat_ratio)
+    (sat_results['anode']['x'],sat_results['anode']['p'])=wilcoxon(sham_anode_sat_ratio,anode_sat_ratio)
+
     if print_stats:
         print('Accuracy Threshold')
         for condition, results in thresh_results.iteritems():
@@ -246,8 +279,12 @@ def analyze_accuracy_rt(subjects, plot=True, print_stats=True):
                                                                                                 results['intercept']['x'],
                                                                                                 results['intercept']['t'],
                                                                                                 results['intercept']['p']))
+        print('')
+        print('SAT')
+        for condition, results in sat_results.iteritems():
+            print('%s: x=%.4f, p=%.4f' % (condition, results['x'],results['p']))
 
-    return thresh_results, rtdiff_results
+    return thresh_results, rtdiff_results, sat_results
 
 
 def analyze_choice_hysteresis(subjects, itis='all', plot=True, print_stats=True):
@@ -304,6 +341,8 @@ def analyze_choice_hysteresis(subjects, itis='all', plot=True, print_stats=True)
     if plot:
         plot_indifference(colors, condition_sigmoid_offsets)
 
+        plot_indifference_hist(colors, condition_sigmoid_offsets)
+
         plot_choice_probability(colors, condition_coherence_choices)
 
         plot_logistic_parameter_ratio(colors, condition_logistic_params)
@@ -352,6 +391,75 @@ def analyze_choice_hysteresis(subjects, itis='all', plot=True, print_stats=True)
 
     return indec_results, log_results
 
+
+def plot_sat(colors, condition_overall_accuracy_rt):
+    fig=plt.figure()
+    ax=fig.add_subplot(1,1,1)
+    for stim_condition in ['Anode','Cathode']:
+        condition='ShamPre%s' % stim_condition
+        overall_accuracy_rt=condition_overall_accuracy_rt[condition]
+        ellipse_x, ellipse_y=get_twod_confidence_interval(overall_accuracy_rt[1],1-np.array(overall_accuracy_rt[0]))
+        ax.plot(ellipse_x,ellipse_y,'%s-' % colors[stim_condition])
+        ax.plot(overall_accuracy_rt[1],1-np.array(overall_accuracy_rt[0]),'o%s' % colors[stim_condition], label=condition)
+    ax.legend(loc='best')
+    ax.set_xlabel('Mean RT')
+    ax.set_ylabel('Error Rate')
+
+    fig = plt.figure()
+    for cond_idx, stim_condition in enumerate(['Anode', 'Cathode']):
+        ax = fig.add_subplot(1, 2, cond_idx + 1)
+        for condition in ['ShamPre%s' % stim_condition, stim_condition]:
+            overall_accuracy_rt=condition_overall_accuracy_rt[condition]
+            ellipse_x, ellipse_y=get_twod_confidence_interval(overall_accuracy_rt[1],1-np.array(overall_accuracy_rt[0]))
+            ax.plot(ellipse_x,ellipse_y,'%s-' % colors[condition])
+            ax.plot(overall_accuracy_rt[1],1-np.array(overall_accuracy_rt[0]), 'o%s' % colors[condition], label=condition)
+        ax.legend(loc='best')
+        ax.set_xlabel('Mean RT')
+        ax.set_ylabel('Error Rate')
+
+    fig=plt.figure()
+    ax=fig.add_subplot(1,1,1)
+    binwidth=.075
+    lims=[-.8,.8]
+    for stim_condition in ['Anode', 'Cathode']:
+        sham_overall_accuracy_rt=condition_overall_accuracy_rt['ShamPre%s' % stim_condition]
+        cond_overall_accuracy_rt=condition_overall_accuracy_rt[stim_condition]
+        sham_sat_ratio=(1000.0/np.array(sham_overall_accuracy_rt[1]))/np.array(sham_overall_accuracy_rt[0])
+        cond_sat_ratio=(1000.0/np.array(cond_overall_accuracy_rt[1]))/np.array(cond_overall_accuracy_rt[0])
+        sat_diff=cond_sat_ratio-sham_sat_ratio
+        bins=np.arange(min(sat_diff), max(sat_diff) + binwidth, binwidth)
+        hist,edges=np.histogram(sat_diff, bins=bins)
+        center = (bins[:-1] + bins[1:]) / 2
+        ax.bar(center, hist/float(len(sham_sat_ratio))*100.0, color=colors[stim_condition], alpha=0.75, label=stim_condition, width=binwidth)
+        (mu, sigma) = norm.fit(sat_diff)
+        xx=np.arange(lims[0],lims[1],0.001)
+        y = normpdf(xx, mu, sigma)*binwidth*100.0
+        ax.plot(xx, y, '%s--' % colors[stim_condition], linewidth=2)
+    ax.legend(loc='best')
+    ax.set_xlim(lims)
+    ax.set_xlabel('Speed/Accuracy Change')
+    ax.set_ylabel('% Subjects')
+
+    fig=plt.figure()
+    ax=fig.add_subplot(1,1,1)
+    binwidth=.075
+    lims=[-.8,.8]
+    sham_cathode_overall_accuracy_rt=condition_overall_accuracy_rt['ShamPreCathode']
+    sham_anode_overall_accuracy_rt=condition_overall_accuracy_rt['ShamPreAnode']
+    sham_cathode_sat_ratio=(1000.0/np.array(sham_cathode_overall_accuracy_rt[1]))/np.array(sham_cathode_overall_accuracy_rt[0])
+    sham_anode_sat_ratio=(1000.0/np.array(sham_anode_overall_accuracy_rt[1]))/np.array(sham_anode_overall_accuracy_rt[0])
+    sat_diff=sham_cathode_sat_ratio-sham_anode_sat_ratio
+    bins=np.arange(min(sat_diff), max(sat_diff) + binwidth, binwidth)
+    hist,edges=np.histogram(sat_diff, bins=bins)
+    center = (bins[:-1] + bins[1:]) / 2
+    ax.bar(center, hist/float(len(sham_sat_ratio))*100.0, color='b', alpha=0.75, width=binwidth)
+    (mu, sigma) = norm.fit(sat_diff)
+    xx=np.arange(lims[0],lims[1],0.001)
+    y = normpdf(xx, mu, sigma)*binwidth*100.0
+    ax.plot(xx, y, 'b--', linewidth=2)
+    ax.set_xlim(lims)
+    ax.set_xlabel('Speed/Accuracy Change')
+    ax.set_ylabel('% Subjects')
 
 def plot_indifference(colors, condition_sigmoid_offsets):
     fig = plt.figure()
@@ -591,18 +699,23 @@ def plot_condition_choice_probability(ax, color, condition, full_coherences, lef
 def plot_logistic_parameter_ratio(colors, condition_logistic_params):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
+    lims=[-.1,.2]
+    xx=np.arange(lims[0],lims[1],0.001)
     binwidth=.02
     for stim_condition in ['Anode', 'Cathode']:
         condition = 'ShamPre%s' % stim_condition
         ratio=np.array(condition_logistic_params['a2'][condition]) / np.array(condition_logistic_params['a1'][condition])
         bins=np.arange(min(ratio), max(ratio) + binwidth, binwidth)
-        ax.hist(ratio, normed=1, label=condition, color=colors[stim_condition], bins=bins, alpha=.75)
+        hist,edges=np.histogram(ratio, bins=bins)
+        center = (bins[:-1] + bins[1:]) / 2
+        ax.bar(center, hist/float(len(ratio))*100.0, color=colors[stim_condition], alpha=0.75, label=stim_condition, width=binwidth)
         (mu, sigma) = norm.fit(ratio)
-        y = normpdf( np.arange(-.1,.2,0.001), mu, sigma)
-        ax.plot(np.arange(-.1,.2,0.001), y, '%s--' % colors[stim_condition], linewidth=2)
+        xx=np.arange(lims[0],lims[1],0.001)
+        y = normpdf(xx, mu, sigma)*binwidth*100.0
+        ax.plot(xx, y, '%s--' % colors[stim_condition], linewidth=2)
     ax.legend(loc='best')
-    ax.set_xlim([-.1, .2])
-    ax.set_ylim([0, 18])
+    ax.set_xlim(lims)
+    ax.set_ylim([0, 35])
     ax.set_xlabel('a2/a1')
     ax.set_ylabel('% subjects')
 
@@ -612,16 +725,61 @@ def plot_logistic_parameter_ratio(colors, condition_logistic_params):
         for condition in ['ShamPre%s' % stim_condition, stim_condition]:
             ratio=np.array(condition_logistic_params['a2'][condition]) / np.array(condition_logistic_params['a1'][condition])
             bins=np.arange(min(ratio), max(ratio) + binwidth, binwidth)
-            ax.hist(ratio, normed=1, label=condition, color=colors[condition], bins=bins, alpha=.75)
+            hist,edges=np.histogram(ratio, bins=bins)
+            center = (bins[:-1] + bins[1:]) / 2
+            ax.bar(center, hist/float(len(ratio))*100.0, color=colors[condition], alpha=0.75, label=condition, width=binwidth)
             (mu, sigma) = norm.fit(ratio)
-            y = normpdf( np.arange(-.1,.2,0.001), mu, sigma)
+            xx=np.arange(lims[0],lims[1],0.001)
+            y = normpdf(xx, mu, sigma)*binwidth*100.0
             ax.plot(np.arange(-.1,.2,0.001), y, '%s--' % colors[condition], linewidth=2)
-        ax.set_xlim([-.1, .2])
-        ax.set_ylim([0,18])
+        ax.set_xlim(lims)
+        ax.set_ylim([0,35])
         ax.legend(loc='best')
         ax.set_xlabel('a2/a1')
         ax.set_ylabel('% subjects')
 
+
+def plot_indifference_hist(colors, condition_sigmoid_offsets):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    binwidth=0.03
+    lims=[-.2,.4]
+    xx=np.arange(lims[0],lims[1],0.001)
+    for stim_condition in ['Anode', 'Cathode']:
+        condition = 'ShamPre%s' % stim_condition
+        diff=np.array(condition_sigmoid_offsets['L*'][condition])-np.array(condition_sigmoid_offsets['R*'][condition])
+        bins=np.arange(min(diff), max(diff)+binwidth, binwidth)
+        hist,edges=np.histogram(diff, bins=bins)
+        center = (bins[:-1] + bins[1:]) / 2
+        ax.bar(center, hist/float(len(diff))*100.0, color=colors[stim_condition], alpha=0.75, label=stim_condition, width=binwidth)
+        (mu, sigma) = norm.fit(diff)
+        xx=np.arange(lims[0],lims[1],0.001)
+        y = normpdf(xx, mu, sigma)*binwidth*100.0
+        ax.plot(xx, y,'%s--' % colors[stim_condition], linewidth=2)
+    ax.set_xlim(lims)
+    ax.set_ylim([0,30])
+    ax.set_xlabel('L*-R* Indifference')
+    ax.set_ylabel('% subjects')
+    ax.legend(loc='best')
+
+    fig = plt.figure()
+    for cond_idx, stim_condition in enumerate(['Anode', 'Cathode']):
+        ax = fig.add_subplot(1, 2, cond_idx + 1)
+        for condition in ['ShamPre%s' % stim_condition, stim_condition]:
+            diff=np.array(condition_sigmoid_offsets['L*'][condition])-np.array(condition_sigmoid_offsets['R*'][condition])
+            bins=np.arange(min(diff), max(diff)+binwidth, binwidth)
+            hist,edges=np.histogram(diff, bins=bins)
+            center = (bins[:-1] + bins[1:]) / 2
+            ax.bar(center, hist/float(len(diff))*100.0, color=colors[condition], alpha=0.75, label=condition, width=binwidth)
+            (mu, sigma) = norm.fit(diff)
+            xx=np.arange(lims[0],lims[1],0.001)
+            y = normpdf(xx, mu, sigma)*binwidth*100.0
+            ax.plot(xx, y,'%s--' % colors[condition], linewidth=2)
+        ax.set_xlim(lims)
+        ax.set_ylim([0,30])
+        ax.set_xlabel('L*-R* Indifference')
+        ax.set_ylabel('% subjects')
+        ax.legend(loc='best')
 
 def plot_accuracy_thresh(colors, condition_accuracy_thresh):
     fig=plt.figure()
@@ -646,12 +804,11 @@ if __name__=='__main__':
     #analyze_single_subj_choice_prob('RIR','../../data/stim2')
     #analyze_single_subj_choice_prob('LZ',data_dir,plot=True)
 
-    #excluded_subjects=['JH']
     excluded_subjects=[]
     subjects=read_subjects(data_dir, filter=True, collapse_sham=False, response_only=True)
     filtered_subjects=exclude_subjects(subjects, excluded_subjects=excluded_subjects)
     (indec_results, log_results)=analyze_choice_hysteresis(filtered_subjects, itis='all')
     print('')
-    (thresh_results,rtdiff_results)=analyze_accuracy_rt(filtered_subjects)
+    (thresh_results,rtdiff_results,sat_results)=analyze_accuracy_rt(filtered_subjects)
     plt.show()
 
