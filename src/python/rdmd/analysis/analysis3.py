@@ -156,12 +156,6 @@ def analyze_subject_choice_hysteresis(subject, plot=False, itis='all'):
 
 
 def analyze_accuracy_rt(subjects, plot=True, print_stats=True):
-    colors={
-        'ShamPreAnode': 'b',
-        'ShamPreCathode': 'b',
-        'Anode': 'r',
-        'Cathode': 'g'
-    }
     condition_coherence_accuracy={}
     condition_coherence_rt={}
     condition_coherence_rt_diff={}
@@ -288,13 +282,6 @@ def analyze_accuracy_rt(subjects, plot=True, print_stats=True):
 
 
 def analyze_choice_hysteresis(subjects, itis='all', plot=True, print_stats=True):
-    colors={
-        'ShamPreAnode': 'b',
-        'ShamPreCathode': 'b',
-        'Anode': 'r',
-        'Cathode': 'g'
-    }
-
     condition_coherence_choices={
         'L*': {},
         'R*': {}
@@ -807,7 +794,7 @@ if __name__=='__main__':
     excluded_subjects=[]
     subjects=read_subjects(data_dir, filter=True, collapse_sham=False, response_only=True)
     filtered_subjects=exclude_subjects(subjects, excluded_subjects=excluded_subjects)
-    (indec_results, log_results)=analyze_choice_hysteresis(filtered_subjects, itis='all')
+    analyze_choice_hysteresis(filtered_subjects, itis='all')
     print('')
     (thresh_results,rtdiff_results,sat_results)=analyze_accuracy_rt(filtered_subjects)
     plt.show()
