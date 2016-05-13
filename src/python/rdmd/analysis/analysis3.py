@@ -796,6 +796,6 @@ if __name__=='__main__':
     filtered_subjects=exclude_subjects(subjects, excluded_subjects=excluded_subjects)
     analyze_choice_hysteresis(filtered_subjects, itis='all')
     print('')
-    (thresh_results,rtdiff_results,sat_results)=analyze_accuracy_rt(filtered_subjects)
+    analyze_accuracy_rt(filtered_subjects)
     plt.show()
 
