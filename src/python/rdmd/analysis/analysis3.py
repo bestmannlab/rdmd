@@ -408,6 +408,7 @@ def plot_sat(colors, condition_overall_accuracy_rt):
     ax=fig.add_subplot(1,1,1)
     binwidth=.075
     lims=[-.8,.8]
+    xx=np.arange(lims[0],lims[1],0.001)
     for stim_condition in ['Anode', 'Cathode']:
         sham_overall_accuracy_rt=condition_overall_accuracy_rt['ShamPre%s' % stim_condition]
         cond_overall_accuracy_rt=condition_overall_accuracy_rt[stim_condition]
@@ -419,7 +420,6 @@ def plot_sat(colors, condition_overall_accuracy_rt):
         center = (bins[:-1] + bins[1:]) / 2
         ax.bar(center, hist/float(len(sham_sat_ratio))*100.0, color=colors[stim_condition], alpha=0.75, label=stim_condition, width=binwidth)
         (mu, sigma) = norm.fit(sat_diff)
-        xx=np.arange(lims[0],lims[1],0.001)
         y = normpdf(xx, mu, sigma)*binwidth*100.0
         ax.plot(xx, y, '%s--' % colors[stim_condition], linewidth=2)
     ax.legend(loc='best')
@@ -441,7 +441,6 @@ def plot_sat(colors, condition_overall_accuracy_rt):
     center = (bins[:-1] + bins[1:]) / 2
     ax.bar(center, hist/float(len(sham_sat_ratio))*100.0, color='b', alpha=0.75, width=binwidth)
     (mu, sigma) = norm.fit(sat_diff)
-    xx=np.arange(lims[0],lims[1],0.001)
     y = normpdf(xx, mu, sigma)*binwidth*100.0
     ax.plot(xx, y, 'b--', linewidth=2)
     ax.set_xlim(lims)
@@ -697,7 +696,6 @@ def plot_logistic_parameter_ratio(colors, condition_logistic_params):
         center = (bins[:-1] + bins[1:]) / 2
         ax.bar(center, hist/float(len(ratio))*100.0, color=colors[stim_condition], alpha=0.75, label=stim_condition, width=binwidth)
         (mu, sigma) = norm.fit(ratio)
-        xx=np.arange(lims[0],lims[1],0.001)
         y = normpdf(xx, mu, sigma)*binwidth*100.0
         ax.plot(xx, y, '%s--' % colors[stim_condition], linewidth=2)
     ax.legend(loc='best')
@@ -716,7 +714,6 @@ def plot_logistic_parameter_ratio(colors, condition_logistic_params):
             center = (bins[:-1] + bins[1:]) / 2
             ax.bar(center, hist/float(len(ratio))*100.0, color=colors[condition], alpha=0.75, label=condition, width=binwidth)
             (mu, sigma) = norm.fit(ratio)
-            xx=np.arange(lims[0],lims[1],0.001)
             y = normpdf(xx, mu, sigma)*binwidth*100.0
             ax.plot(np.arange(-.1,.2,0.001), y, '%s--' % colors[condition], linewidth=2)
         ax.set_xlim(lims)
@@ -740,7 +737,6 @@ def plot_indifference_hist(colors, condition_sigmoid_offsets):
         center = (bins[:-1] + bins[1:]) / 2
         ax.bar(center, hist/float(len(diff))*100.0, color=colors[stim_condition], alpha=0.75, label=stim_condition, width=binwidth)
         (mu, sigma) = norm.fit(diff)
-        xx=np.arange(lims[0],lims[1],0.001)
         y = normpdf(xx, mu, sigma)*binwidth*100.0
         ax.plot(xx, y,'%s--' % colors[stim_condition], linewidth=2)
     ax.set_xlim(lims)
@@ -759,7 +755,6 @@ def plot_indifference_hist(colors, condition_sigmoid_offsets):
             center = (bins[:-1] + bins[1:]) / 2
             ax.bar(center, hist/float(len(diff))*100.0, color=colors[condition], alpha=0.75, label=condition, width=binwidth)
             (mu, sigma) = norm.fit(diff)
-            xx=np.arange(lims[0],lims[1],0.001)
             y = normpdf(xx, mu, sigma)*binwidth*100.0
             ax.plot(xx, y,'%s--' % colors[condition], linewidth=2)
         ax.set_xlim(lims)
